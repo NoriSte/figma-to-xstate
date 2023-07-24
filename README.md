@@ -1,5 +1,31 @@
 # Figma to XState
 
+## Why?
+
+I trust XState not only as a powerful development tool, but also for enabling pair programming
+among engineers and Product stakeholders.
+
+Product teams do not miss much edge cases when they design
+features through flowcharts and also ease a flowchart-to-XState machine conversion process. At the
+same time, I think a Figma prototype to XState machine convert tool can speed up the initial
+conversion process, allowing later engineering rework with or without the designers.
+
+
+## Roadmap
+
+🚧 WIP 🚧
+
+## FAQ
+
+*Is an XState machine to Figma prototype conversion in the roadmap?*?
+
+No, Figma's prototypes lacks most of the XState's functionalities.
+
+*Is a two-way sync in the roadmap after the first export?*?
+
+No, I think tracking what happened to the XState machine after it has been exported is too hard and
+Figma's prototypes lacks most of the XState's functionalities.
+
 ## Development guide
 
 *This plugin is built with [Create Figma Plugin](https://yuanqing.github.io/create-figma-plugin/).*
