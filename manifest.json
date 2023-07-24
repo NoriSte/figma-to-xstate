@@ -1,0 +1,9 @@
+{
+  "api": "1.0.0",
+  "editorType": [
+    "figma"
+  ],
+  "id": "figma-to-xstate",
+  "name": "Figma to XState",
+  "main": "build/main.js"
+}

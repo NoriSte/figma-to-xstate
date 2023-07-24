@@ -1,0 +1,15 @@
+{
+  "extends": "@create-figma-plugin/tsconfig",
+  "compilerOptions": {
+    // These are the default Figma plugin settings that, for instance, forbid accessing `navigator`
+    // (while create-figma-plugin does not forbid it)
+    "target": "es6",
+    "lib": ["es6"],
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+
+    "typeRoots": ["./node_modules/@types", "./node_modules/@figma"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}
