@@ -1,86 +1,101 @@
-import { type NavigateOnClickNode } from './types'
+import CodeBlockWriter from 'code-block-writer'
+
 import { normalizeString } from './utils'
+import { type SimplifiedFrame, type NavigateOnClickNode } from './types'
 
 type Params = {
-  readonly frames: FrameNode[]
+  readonly frames: SimplifiedFrame[]
+  readonly writer: CodeBlockWriter
   readonly elementsThatNavigate: NavigateOnClickNode[]
 }
+
 export function createXStateV4StateMachineOptions(params: Params) {
-  const { frames, elementsThatNavigate } = params
+  const { frames, elementsThatNavigate, writer } = params
 
   const firstFrame = frames[0]
   if (!firstFrame) {
-    console.error('The document contains no frame.')
-    return
+    throw new Error('The document contains no frames.')
   }
 
-  let code = `{
-  id: '${normalizeString(figma.currentPage.name)}',
-  initial: '${normalizeString(firstFrame.name)}',
-  states: {`
+  writer.block(() => {
+    // Machine id
+    writer
+      .write('id:')
+      .space()
+      .quote()
+      .write(normalizeString(figma.currentPage.name))
+      .quote()
+      .write(',')
+      .newLine()
 
-  for (const frame of frames) {
-    const elementsThatNavigateInFrame = elementsThatNavigate.filter(
-      (element) => element.parentFrame.id === frame.id
-    )
-    if (elementsThatNavigateInFrame.length > 0) {
-      code += `
-      ${normalizeString(frame.name)}: {
-      on: {
+    // Initial State
+    writer
+      .write('initial:')
+      .space()
+      .quote()
+      .write(normalizeString(firstFrame.name))
+      .quote()
+      .write(',')
+      .newLine()
 
-  `
-      for (const elementThatNavigateInFrame of elementsThatNavigateInFrame) {
-        const destinationFrame = frames.find(
-          ({ id }) => elementThatNavigateInFrame.destinationFrameId === id
-        )
+    // Machine states
+    writer.write('states:').block(() => {
+      for (const frame of frames) {
+        // State name
+        writer
+          .write(normalizeString(frame.name))
+          .write(':')
+          .inlineBlock(() => {
+            // State body
+            const elementsThatNavigateInFrame = elementsThatNavigate.filter(
+              (element) => element.parentFrame.id === frame.id
+            )
 
-        if (!destinationFrame)
-          throw new Error(`Frame ${elementThatNavigateInFrame.destinationFrameId} not found`)
+            const noMachineEvents = elementsThatNavigateInFrame.length === 0
+            if (noMachineEvents) {
+              writer.writeLine(
+                '// This frame does not contain anything that navigates to other frames'
+              )
+              return
+            }
 
-        code += `
+            // State events
+            writer.write('on:').block(() => {
+              for (const elementThatNavigateInFrame of elementsThatNavigateInFrame) {
+                const destinationFrame = frames.find(
+                  ({ id }) => elementThatNavigateInFrame.destinationFrameId === id
+                )
 
-  ${normalizeString(
-    `CLICK_ON_${elementThatNavigateInFrame.name.toUpperCase()}`
-  )}: '${normalizeString(destinationFrame.name)}',
+                if (!destinationFrame)
+                  throw new Error(
+                    `Frame ${elementThatNavigateInFrame.destinationFrameId} not found`
+                  )
 
-  `
+                // Event
+                writer
+                  .write(
+                    normalizeString(`CLICK_ON_${elementThatNavigateInFrame.name.toUpperCase()}`)
+                  )
+                  .write(':')
+                  .space()
+                  .quote()
+                  // Target state
+                  .write(normalizeString(destinationFrame.name))
+                  .quote()
+                  .write(',')
+                  .newLine()
+              }
+            })
+          })
+          .write(',')
+          .newLine()
       }
-      code += `
-    },
-  },
-  `
-    } else {
-      code += `
-    ${normalizeString(frame.name)}: {
-      // This frame does not contain anything that navigates to other frames
-    },
-      `
-    }
-  }
+    })
+  })
 
-  code += `
-  },
-}
-`
-
-  return code
+  return writer
 }
 
-export function createXStateV4VizCode(params: Params) {
-  let code = `
-// Available variables:
-// - Machine
-// - interpret
-// - assign
-// - send
-// - sendParent
-// - spawn
-// - raise
-// - actions
-// - XState (all XState exports)
-
-const ${figma.currentPage.name}Machine = Machine(${createXStateV4StateMachineOptions(params)})
-  `
-
-  return code
+export function createXStateV4Machine(params: Params) {
+  return createXStateV4StateMachineOptions(params).toString()
 }

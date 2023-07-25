@@ -18,8 +18,8 @@ export function generateGroupName(node: GroupNode) {
   return childName || node.name
 }
 
-export function normalizeString(name: string) {
-  return name.replace(/[^a-zA-Z0-9]/g, '_')
+export function normalizeString(str: string) {
+  return str.trim().replace(/[^a-zA-Z0-9]/g, '_')
 }
 
 export function matchElementThatNavigateOnClick(

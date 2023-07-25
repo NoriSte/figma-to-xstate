@@ -1,8 +1,8 @@
-import { isFrame, type NavigateOnClickNode } from './types'
+import { isFrame, type SimplifiedFrame, type NavigateOnClickNode } from './types'
 import { matchElementThatNavigateOnClick } from './utils'
 
 type Params = {
-  mutableFrames: FrameNode[]
+  mutableFrames: SimplifiedFrame[]
   mutableElementsThatNavigate: NavigateOnClickNode[]
 }
 
@@ -25,7 +25,10 @@ export function traversePage(params: Params) {
     // Loop optimized to traverse the full document only once
 
     if (isFrame(node)) {
-      mutableFrames.push(node)
+      mutableFrames.push({
+        id: node.id,
+        name: node.name,
+      })
       lastFrame = node
     }
 

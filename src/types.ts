@@ -1,3 +1,9 @@
+// --------------------------------------------------
+// TYPES
+// --------------------------------------------------
+
+export type SimplifiedFrame = Pick<FrameNode, 'id' | 'name'>
+
 export type NavigateOnClickNode = {
   node: SceneNode
   destinationFrameId: string

@@ -1,8 +1,9 @@
 // --------------------------------------------------
 // VARS
 
-import { type NavigateOnClickNode } from './types'
-import { createXStateV4VizCode } from './generators'
+import CodeBlockWriter from 'code-block-writer'
+import { type SimplifiedFrame, type NavigateOnClickNode } from './types'
+import { createXStateV4Machine } from './generators'
 import { traversePage } from './traverse'
 
 // --------------------------------------------------
@@ -10,7 +11,7 @@ import { traversePage } from './traverse'
 // -----------------------
 
 export default function () {
-  const frames: FrameNode[] = []
+  const frames: SimplifiedFrame[] = []
   const elementsThatNavigate: NavigateOnClickNode[] = []
 
   traversePage({
@@ -18,8 +19,15 @@ export default function () {
     mutableElementsThatNavigate: elementsThatNavigate,
   })
 
+  const writer = new CodeBlockWriter({
+    useTabs: false,
+    useSingleQuote: true,
+    indentNumberOfSpaces: 2,
+  })
+
   console.log({ frames, elementsThatNavigate })
-  const code = createXStateV4VizCode({
+  const code = createXStateV4Machine({
+    writer,
     frames,
     elementsThatNavigate,
   })
