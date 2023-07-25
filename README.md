@@ -1,5 +1,7 @@
 # Figma to XState
 
+A Figma plugin to convert a Figma prototype to an XState machine.
+
 ## Why?
 
 I trust XState not only as a powerful development tool, but also for enabling pair programming
@@ -13,7 +15,33 @@ conversion process, allowing later engineering rework with or without the design
 
 ## Roadmap
 
-🚧 WIP 🚧
+- [x] Export Figma's frames as XState's states
+- [ ] Export Figma's interactions as XState's events
+  - [x] Click
+  - [ ] Drag
+  - [ ] Key
+  - [ ] Mouse enter
+  - [ ] Mouse leave
+  - [ ] Mouse leave
+  - [ ] Mouse down
+  - [ ] Mouse up
+  - [ ] After delay
+  - [ ] Set variable
+- [ ] Export Figma's interactions actions as XState's events
+  - [x] Navigate
+  - [ ] Change to
+  - [ ] Back
+  - [ ] Set variable
+  - [ ] Conditional
+  - [ ] ~~Scroll to~~
+  - [ ] Open link
+  - [ ] Open overlay
+  - [ ] Swap overlay
+  - [ ] Close overlay
+- [ ] Support for multiple prototypes in the same page
+- [ ] Support for custom prototype starting points
+
+
 
 ## FAQ
 
