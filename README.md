@@ -40,6 +40,7 @@ conversion process, allowing later engineering rework with or without the design
   - [ ] Close overlay
 - [ ] Support for multiple prototypes in the same page
 - [ ] Support for custom prototype starting points
+- [ ] Export XState V5 machine
 
 
 
