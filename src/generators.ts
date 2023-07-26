@@ -1,16 +1,16 @@
 import CodeBlockWriter from 'code-block-writer'
 
 import { normalizeString } from './utils'
-import { type SimplifiedFrame, type NavigateOnClickNode } from './types'
+import { type SimplifiedFrame, type NavigateOnInteractionNode } from './types'
 
 type Params = {
   readonly frames: SimplifiedFrame[]
   readonly writer: CodeBlockWriter
-  readonly elementsThatNavigate: NavigateOnClickNode[]
+  readonly navigateOnInteractionNodes: NavigateOnInteractionNode[]
 }
 
 export function createXStateV4StateMachineOptions(params: Params) {
-  const { frames, elementsThatNavigate, writer } = params
+  const { frames, navigateOnInteractionNodes, writer } = params
 
   const firstFrame = frames[0]
   if (!firstFrame) {
@@ -47,11 +47,11 @@ export function createXStateV4StateMachineOptions(params: Params) {
           .write(':')
           .inlineBlock(() => {
             // State body
-            const elementsThatNavigateInFrame = elementsThatNavigate.filter(
+            const navigateNodesInThisFrame = navigateOnInteractionNodes.filter(
               (element) => element.parentFrame.id === frame.id
             )
 
-            const noMachineEvents = elementsThatNavigateInFrame.length === 0
+            const noMachineEvents = navigateNodesInThisFrame.length === 0
             if (noMachineEvents) {
               writer.writeLine(
                 '// This frame does not contain anything that navigates to other frames'
@@ -61,21 +61,23 @@ export function createXStateV4StateMachineOptions(params: Params) {
 
             // State events
             writer.write('on:').block(() => {
-              for (const elementThatNavigateInFrame of elementsThatNavigateInFrame) {
+              for (const navigateNodeInThisFrame of navigateNodesInThisFrame) {
                 const destinationFrame = frames.find(
-                  ({ id }) => elementThatNavigateInFrame.destinationFrameId === id
+                  ({ id }) => navigateNodeInThisFrame.destinationFrameId === id
                 )
 
                 if (!destinationFrame)
-                  throw new Error(
-                    `Frame ${elementThatNavigateInFrame.destinationFrameId} not found`
-                  )
+                  throw new Error(`Frame ${navigateNodeInThisFrame.destinationFrameId} not found`)
 
-                // Event
+                const eventName = normalizeString(
+                  `${
+                    navigateNodeInThisFrame.triggerType
+                  }_${navigateNodeInThisFrame.name.toUpperCase()}`
+                )
+
                 writer
-                  .write(
-                    normalizeString(`CLICK_ON_${elementThatNavigateInFrame.name.toUpperCase()}`)
-                  )
+                  // Event name
+                  .write(eventName)
                   .write(':')
                   .space()
                   .quote()
@@ -97,5 +99,5 @@ export function createXStateV4StateMachineOptions(params: Params) {
 }
 
 export function createXStateV4Machine(params: Params) {
-  return createXStateV4StateMachineOptions(params).toString()
+  createXStateV4StateMachineOptions(params)
 }

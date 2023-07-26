@@ -4,10 +4,11 @@
 
 export type SimplifiedFrame = Pick<FrameNode, 'id' | 'name'>
 
-export type NavigateOnClickNode = {
+export type NavigateOnInteractionNode = {
   node: SceneNode
-  destinationFrameId: string
   parentFrame: FrameNode
+  destinationFrameId: string
+  triggerType: 'ON_CLICK' | 'ON_DRAG'
 
   // The node name or the name of the first text element found inside
   name: string

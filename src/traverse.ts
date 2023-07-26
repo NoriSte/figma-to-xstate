@@ -1,9 +1,9 @@
-import { isFrame, type SimplifiedFrame, type NavigateOnClickNode } from './types'
-import { matchElementThatNavigateOnClick } from './utils'
+import { isFrame, type SimplifiedFrame, type NavigateOnInteractionNode } from './types'
+import { matchElementThatNavigateOnClick, matchElementThatNavigateOnDrag } from './utils'
 
 type Params = {
   mutableFrames: SimplifiedFrame[]
-  mutableElementsThatNavigate: NavigateOnClickNode[]
+  mutableNavigateOnInteractionNodes: NavigateOnInteractionNode[]
 }
 
 // --------------------------------------------------
@@ -12,7 +12,7 @@ type Params = {
 // FIGMA RELATED
 // --------------------------------------------------
 export function traversePage(params: Params) {
-  const { mutableFrames, mutableElementsThatNavigate } = params
+  const { mutableFrames, mutableNavigateOnInteractionNodes: mutableElementsThatNavigate } = params
 
   const skipInvisibleInstanceChildrenBackup = figma.skipInvisibleInstanceChildren
 
@@ -33,6 +33,7 @@ export function traversePage(params: Params) {
     }
 
     matchElementThatNavigateOnClick(mutableElementsThatNavigate, node, lastFrame)
+    matchElementThatNavigateOnDrag(mutableElementsThatNavigate, node, lastFrame)
 
     return false
   })

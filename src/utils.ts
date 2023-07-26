@@ -1,4 +1,4 @@
-import { isGroup, type NavigateOnClickNode } from './types'
+import { isGroup, type NavigateOnInteractionNode } from './types'
 
 export function generateGroupName(node: GroupNode) {
   const groupHasGenericName = /^Group\s\d+$/.test(node.name)
@@ -8,8 +8,6 @@ export function generateGroupName(node: GroupNode) {
 
   node.findAll((child) => {
     if (childName) return false
-
-    console.log(child.type, child.name)
     if (child.type === 'TEXT') childName = child.name
 
     return false
@@ -23,22 +21,52 @@ export function normalizeString(str: string) {
 }
 
 export function matchElementThatNavigateOnClick(
-  mutableElementsThatNavigate: NavigateOnClickNode[],
+  mutableNavigateOnInteractionNodes: NavigateOnInteractionNode[],
   node: SceneNode,
   parentFrame: FrameNode
 ) {
   if (!('reactions' in node)) return
 
   for (const reaction of node.reactions) {
+    if (!reaction.trigger) continue
+    if (reaction.trigger.type !== 'ON_CLICK') continue
     if (!reaction.action) continue
     if (reaction.action.type !== 'NODE') continue
     if (reaction.action.navigation !== 'NAVIGATE') continue
     if (!reaction.action.destinationId) continue
 
-    mutableElementsThatNavigate.push({
+    mutableNavigateOnInteractionNodes.push({
       node,
-      destinationFrameId: reaction.action.destinationId,
       parentFrame,
+      triggerType: reaction.trigger.type,
+      destinationFrameId: reaction.action.destinationId,
+      name: isGroup(node) ? generateGroupName(node) : node.name,
+    })
+
+    break
+  }
+}
+
+export function matchElementThatNavigateOnDrag(
+  mutableNavigateOnInteractionNodes: NavigateOnInteractionNode[],
+  node: SceneNode,
+  parentFrame: FrameNode
+) {
+  if (!('reactions' in node)) return
+
+  for (const reaction of node.reactions) {
+    if (!reaction.trigger) continue
+    if (reaction.trigger.type !== 'ON_DRAG') continue
+    if (!reaction.action) continue
+    if (reaction.action.type !== 'NODE') continue
+    if (reaction.action.navigation !== 'NAVIGATE') continue
+    if (!reaction.action.destinationId) continue
+
+    mutableNavigateOnInteractionNodes.push({
+      node,
+      parentFrame,
+      triggerType: reaction.trigger.type,
+      destinationFrameId: reaction.action.destinationId,
       name: isGroup(node) ? generateGroupName(node) : node.name,
     })
 

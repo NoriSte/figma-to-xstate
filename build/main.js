@@ -899,7 +899,6 @@ function generateGroupName(node) {
   node.findAll((child) => {
     if (childName)
       return false;
-    console.log(child.type, child.name);
     if (child.type === "TEXT")
       childName = child.name;
     return false;
@@ -909,10 +908,14 @@ function generateGroupName(node) {
 function normalizeString(str) {
   return str.trim().replace(/[^a-zA-Z0-9]/g, "_");
 }
-function matchElementThatNavigateOnClick(mutableElementsThatNavigate, node, parentFrame) {
+function matchElementThatNavigateOnClick(mutableNavigateOnInteractionNodes, node, parentFrame) {
   if (!("reactions" in node))
     return;
   for (const reaction of node.reactions) {
+    if (!reaction.trigger)
+      continue;
+    if (reaction.trigger.type !== "ON_CLICK")
+      continue;
     if (!reaction.action)
       continue;
     if (reaction.action.type !== "NODE")
@@ -921,10 +924,37 @@ function matchElementThatNavigateOnClick(mutableElementsThatNavigate, node, pare
       continue;
     if (!reaction.action.destinationId)
       continue;
-    mutableElementsThatNavigate.push({
+    mutableNavigateOnInteractionNodes.push({
       node,
-      destinationFrameId: reaction.action.destinationId,
       parentFrame,
+      triggerType: reaction.trigger.type,
+      destinationFrameId: reaction.action.destinationId,
+      name: isGroup(node) ? generateGroupName(node) : node.name
+    });
+    break;
+  }
+}
+function matchElementThatNavigateOnDrag(mutableNavigateOnInteractionNodes, node, parentFrame) {
+  if (!("reactions" in node))
+    return;
+  for (const reaction of node.reactions) {
+    if (!reaction.trigger)
+      continue;
+    if (reaction.trigger.type !== "ON_DRAG")
+      continue;
+    if (!reaction.action)
+      continue;
+    if (reaction.action.type !== "NODE")
+      continue;
+    if (reaction.action.navigation !== "NAVIGATE")
+      continue;
+    if (!reaction.action.destinationId)
+      continue;
+    mutableNavigateOnInteractionNodes.push({
+      node,
+      parentFrame,
+      triggerType: reaction.trigger.type,
+      destinationFrameId: reaction.action.destinationId,
       name: isGroup(node) ? generateGroupName(node) : node.name
     });
     break;
@@ -939,7 +969,7 @@ var init_utils = __esm({
 
 // src/generators.ts
 function createXStateV4StateMachineOptions(params) {
-  const { frames, elementsThatNavigate, writer } = params;
+  const { frames, navigateOnInteractionNodes, writer } = params;
   const firstFrame = frames[0];
   if (!firstFrame) {
     throw new Error("The document contains no frames.");
@@ -950,10 +980,10 @@ function createXStateV4StateMachineOptions(params) {
     writer.write("states:").block(() => {
       for (const frame of frames) {
         writer.write(normalizeString(frame.name)).write(":").inlineBlock(() => {
-          const elementsThatNavigateInFrame = elementsThatNavigate.filter(
+          const navigateNodesInThisFrame = navigateOnInteractionNodes.filter(
             (element) => element.parentFrame.id === frame.id
           );
-          const noMachineEvents = elementsThatNavigateInFrame.length === 0;
+          const noMachineEvents = navigateNodesInThisFrame.length === 0;
           if (noMachineEvents) {
             writer.writeLine(
               "// This frame does not contain anything that navigates to other frames"
@@ -961,17 +991,16 @@ function createXStateV4StateMachineOptions(params) {
             return;
           }
           writer.write("on:").block(() => {
-            for (const elementThatNavigateInFrame of elementsThatNavigateInFrame) {
+            for (const navigateNodeInThisFrame of navigateNodesInThisFrame) {
               const destinationFrame = frames.find(
-                ({ id }) => elementThatNavigateInFrame.destinationFrameId === id
+                ({ id }) => navigateNodeInThisFrame.destinationFrameId === id
               );
               if (!destinationFrame)
-                throw new Error(
-                  `Frame ${elementThatNavigateInFrame.destinationFrameId} not found`
-                );
-              writer.write(
-                normalizeString(`CLICK_ON_${elementThatNavigateInFrame.name.toUpperCase()}`)
-              ).write(":").space().quote().write(normalizeString(destinationFrame.name)).quote().write(",").newLine();
+                throw new Error(`Frame ${navigateNodeInThisFrame.destinationFrameId} not found`);
+              const eventName = normalizeString(
+                `${navigateNodeInThisFrame.triggerType}_${navigateNodeInThisFrame.name.toUpperCase()}`
+              );
+              writer.write(eventName).write(":").space().quote().write(normalizeString(destinationFrame.name)).quote().write(",").newLine();
             }
           });
         }).write(",").newLine();
@@ -981,7 +1010,7 @@ function createXStateV4StateMachineOptions(params) {
   return writer;
 }
 function createXStateV4Machine(params) {
-  return createXStateV4StateMachineOptions(params).toString();
+  createXStateV4StateMachineOptions(params);
 }
 var init_generators = __esm({
   "src/generators.ts"() {
@@ -992,7 +1021,7 @@ var init_generators = __esm({
 
 // src/traverse.ts
 function traversePage(params) {
-  const { mutableFrames, mutableElementsThatNavigate } = params;
+  const { mutableFrames, mutableNavigateOnInteractionNodes: mutableElementsThatNavigate } = params;
   const skipInvisibleInstanceChildrenBackup = figma.skipInvisibleInstanceChildren;
   figma.skipInvisibleInstanceChildren = true;
   let lastFrame;
@@ -1005,6 +1034,7 @@ function traversePage(params) {
       lastFrame = node;
     }
     matchElementThatNavigateOnClick(mutableElementsThatNavigate, node, lastFrame);
+    matchElementThatNavigateOnDrag(mutableElementsThatNavigate, node, lastFrame);
     return false;
   });
   figma.skipInvisibleInstanceChildren = skipInvisibleInstanceChildrenBackup;
@@ -1024,23 +1054,23 @@ __export(main_exports, {
 });
 function main_default() {
   const frames = [];
-  const elementsThatNavigate = [];
+  const navigateOnInteractionNodes = [];
   traversePage({
     mutableFrames: frames,
-    mutableElementsThatNavigate: elementsThatNavigate
+    mutableNavigateOnInteractionNodes: navigateOnInteractionNodes
   });
   const writer = new CodeBlockWriter({
     useTabs: false,
     useSingleQuote: true,
     indentNumberOfSpaces: 2
   });
-  console.log({ frames, elementsThatNavigate });
-  const code = createXStateV4Machine({
+  console.log({ frames, navigateOnInteractionNodes });
+  createXStateV4Machine({
     writer,
     frames,
-    elementsThatNavigate
+    navigateOnInteractionNodes
   });
-  console.log(code);
+  console.log(writer.toString());
   figma.closePlugin("Hello, mondo!");
 }
 var init_main = __esm({

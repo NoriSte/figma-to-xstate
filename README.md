@@ -18,7 +18,7 @@ conversion process, allowing later engineering rework with or without the design
 - [x] Export Figma's frames as XState's states
 - [ ] Export Figma's interactions as XState's events
   - [x] Click
-  - [ ] Drag
+  - [x] Drag
   - [ ] Key
   - [ ] Mouse enter
   - [ ] Mouse leave

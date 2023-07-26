@@ -2,7 +2,7 @@
 // VARS
 
 import CodeBlockWriter from 'code-block-writer'
-import { type SimplifiedFrame, type NavigateOnClickNode } from './types'
+import { type SimplifiedFrame, type NavigateOnInteractionNode } from './types'
 import { createXStateV4Machine } from './generators'
 import { traversePage } from './traverse'
 
@@ -12,11 +12,11 @@ import { traversePage } from './traverse'
 
 export default function () {
   const frames: SimplifiedFrame[] = []
-  const elementsThatNavigate: NavigateOnClickNode[] = []
+  const navigateOnInteractionNodes: NavigateOnInteractionNode[] = []
 
   traversePage({
     mutableFrames: frames,
-    mutableElementsThatNavigate: elementsThatNavigate,
+    mutableNavigateOnInteractionNodes: navigateOnInteractionNodes,
   })
 
   const writer = new CodeBlockWriter({
@@ -25,13 +25,13 @@ export default function () {
     indentNumberOfSpaces: 2,
   })
 
-  console.log({ frames, elementsThatNavigate })
-  const code = createXStateV4Machine({
+  console.log({ frames, navigateOnInteractionNodes })
+  createXStateV4Machine({
     writer,
     frames,
-    elementsThatNavigate,
+    navigateOnInteractionNodes,
   })
-  console.log(code)
+  console.log(writer.toString())
 
   // Make sure to close the plugin when you're done. Otherwise the plugin will
   // keep running, which shows the cancel button at the bottom of the screen.
