@@ -1,5 +1,9 @@
 import { isFrame, type SimplifiedFrame, type NavigateOnInteractionNode } from './types'
-import { matchElementThatNavigateOnClick, matchElementThatNavigateOnDrag } from './utils'
+import {
+  matchElementThatNavigateOnDrag,
+  matchElementThatNavigateOnClick,
+  matchElementThatNavigateOnMouseEvent,
+} from './utils'
 
 type Params = {
   mutableFrames: SimplifiedFrame[]
@@ -32,8 +36,9 @@ export function traversePage(params: Params) {
       lastFrame = node
     }
 
-    matchElementThatNavigateOnClick(mutableElementsThatNavigate, node, lastFrame)
     matchElementThatNavigateOnDrag(mutableElementsThatNavigate, node, lastFrame)
+    matchElementThatNavigateOnClick(mutableElementsThatNavigate, node, lastFrame)
+    matchElementThatNavigateOnMouseEvent(mutableElementsThatNavigate, node, lastFrame)
 
     return false
   })

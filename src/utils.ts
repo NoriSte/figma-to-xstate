@@ -73,3 +73,39 @@ export function matchElementThatNavigateOnDrag(
     break
   }
 }
+
+export function matchElementThatNavigateOnMouseEvent(
+  mutableNavigateOnInteractionNodes: NavigateOnInteractionNode[],
+  node: SceneNode,
+  parentFrame: FrameNode
+) {
+  if (!('reactions' in node)) return
+
+  for (const reaction of node.reactions) {
+    if (!reaction.trigger) continue
+    console.log(reaction.trigger.type)
+    if (
+      reaction.trigger.type !== 'MOUSE_ENTER' &&
+      reaction.trigger.type !== 'MOUSE_LEAVE' &&
+      reaction.trigger.type !== 'MOUSE_UP' &&
+      reaction.trigger.type !== 'MOUSE_DOWN'
+    )
+      continue
+
+    if (!reaction.action) continue
+    if (reaction.action.type !== 'NODE') continue
+    if (reaction.action.navigation !== 'NAVIGATE') continue
+    if (!reaction.action.destinationId) continue
+
+    mutableNavigateOnInteractionNodes.push({
+      node,
+      parentFrame,
+      triggerType: reaction.trigger.type,
+      destinationFrameId: reaction.action.destinationId,
+      name: isGroup(node) ? generateGroupName(node) : node.name,
+    })
+
+    // Can't break because the same node can have multiple mouse reactions
+    // break
+  }
+}
