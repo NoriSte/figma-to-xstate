@@ -37,5 +37,5 @@ export default function () {
   // keep running, which shows the cancel button at the bottom of the screen.
   // Keeping it running allow later collapsed console.log inspection
   // figma.closePlugin()
-  figma.closePlugin('Hello, mondo!')
+  figma.closePlugin('Hello, world!')
 }

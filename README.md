@@ -24,10 +24,13 @@ conversion process, allowing later engineering rework with or without the design
   - [x] Mouse leave
   - [x] Mouse leave
   - [x] Mouse down
-    - [ ] Delay for all the mouse events
+    - [x] Delay for all the mouse events
+    - [ ] Delays that override each other
   - [ ] Mouse up
   - [ ] After delay
   - [ ] Set variable
+- [ ] Support XState's final state type
+- [ ] Support nodes nested in other other nodes
 - [ ] Export Figma's interactions actions as XState's events
   - [x] Navigate
   - [ ] Change to

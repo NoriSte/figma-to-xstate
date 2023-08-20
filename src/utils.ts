@@ -40,7 +40,7 @@ export function matchElementThatNavigateOnClick(
       parentFrame,
       triggerType: reaction.trigger.type,
       destinationFrameId: reaction.action.destinationId,
-      name: isGroup(node) ? generateGroupName(node) : node.name,
+      generatedName: isGroup(node) ? generateGroupName(node) : node.name,
     })
 
     break
@@ -67,7 +67,7 @@ export function matchElementThatNavigateOnDrag(
       parentFrame,
       triggerType: reaction.trigger.type,
       destinationFrameId: reaction.action.destinationId,
-      name: isGroup(node) ? generateGroupName(node) : node.name,
+      generatedName: isGroup(node) ? generateGroupName(node) : node.name,
     })
 
     break
@@ -83,7 +83,7 @@ export function matchElementThatNavigateOnMouseEvent(
 
   for (const reaction of node.reactions) {
     if (!reaction.trigger) continue
-    console.log(reaction.trigger.type)
+
     if (
       reaction.trigger.type !== 'MOUSE_ENTER' &&
       reaction.trigger.type !== 'MOUSE_LEAVE' &&
@@ -97,13 +97,19 @@ export function matchElementThatNavigateOnMouseEvent(
     if (reaction.action.navigation !== 'NAVIGATE') continue
     if (!reaction.action.destinationId) continue
 
-    mutableNavigateOnInteractionNodes.push({
+    const navigationNode: NavigateOnInteractionNode = {
       node,
       parentFrame,
       triggerType: reaction.trigger.type,
       destinationFrameId: reaction.action.destinationId,
-      name: isGroup(node) ? generateGroupName(node) : node.name,
-    })
+      generatedName: isGroup(node) ? generateGroupName(node) : node.name,
+    }
+
+    if (reaction.trigger.delay > 0) {
+      navigationNode.delay = reaction.trigger.delay * 1000
+    }
+
+    mutableNavigateOnInteractionNodes.push(navigationNode)
 
     // Can't break because the same node can have multiple mouse reactions
     // break

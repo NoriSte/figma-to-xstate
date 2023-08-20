@@ -3,16 +3,24 @@
 // --------------------------------------------------
 
 export type SimplifiedFrame = Pick<FrameNode, 'id' | 'name'>
+type DelayInMilliseconds = number
 
 export type NavigateOnInteractionNode = {
   node: SceneNode
   parentFrame: FrameNode
   destinationFrameId: string
-  triggerType: 'ON_CLICK' | 'ON_DRAG' | 'MOUSE_ENTER' | 'MOUSE_LEAVE' | 'MOUSE_UP' | 'MOUSE_DOWN'
 
   // The node name or the name of the first text element found inside
-  name: string
-}
+  generatedName: string
+} & (
+  | {
+      triggerType: 'ON_CLICK' | 'ON_DRAG'
+    }
+  | {
+      triggerType: 'MOUSE_ENTER' | 'MOUSE_LEAVE' | 'MOUSE_UP' | 'MOUSE_DOWN'
+      delay?: DelayInMilliseconds
+    }
+)
 
 // --------------------------------------------------
 // GUARDS

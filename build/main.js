@@ -929,7 +929,7 @@ function matchElementThatNavigateOnClick(mutableNavigateOnInteractionNodes, node
       parentFrame,
       triggerType: reaction.trigger.type,
       destinationFrameId: reaction.action.destinationId,
-      name: isGroup(node) ? generateGroupName(node) : node.name
+      generatedName: isGroup(node) ? generateGroupName(node) : node.name
     });
     break;
   }
@@ -955,7 +955,7 @@ function matchElementThatNavigateOnDrag(mutableNavigateOnInteractionNodes, node,
       parentFrame,
       triggerType: reaction.trigger.type,
       destinationFrameId: reaction.action.destinationId,
-      name: isGroup(node) ? generateGroupName(node) : node.name
+      generatedName: isGroup(node) ? generateGroupName(node) : node.name
     });
     break;
   }
@@ -966,7 +966,6 @@ function matchElementThatNavigateOnMouseEvent(mutableNavigateOnInteractionNodes,
   for (const reaction of node.reactions) {
     if (!reaction.trigger)
       continue;
-    console.log(reaction.trigger.type);
     if (reaction.trigger.type !== "MOUSE_ENTER" && reaction.trigger.type !== "MOUSE_LEAVE" && reaction.trigger.type !== "MOUSE_UP" && reaction.trigger.type !== "MOUSE_DOWN")
       continue;
     if (!reaction.action)
@@ -977,13 +976,17 @@ function matchElementThatNavigateOnMouseEvent(mutableNavigateOnInteractionNodes,
       continue;
     if (!reaction.action.destinationId)
       continue;
-    mutableNavigateOnInteractionNodes.push({
+    const navigationNode = {
       node,
       parentFrame,
       triggerType: reaction.trigger.type,
       destinationFrameId: reaction.action.destinationId,
-      name: isGroup(node) ? generateGroupName(node) : node.name
-    });
+      generatedName: isGroup(node) ? generateGroupName(node) : node.name
+    };
+    if (reaction.trigger.delay > 0) {
+      navigationNode.delay = reaction.trigger.delay * 1e3;
+    }
+    mutableNavigateOnInteractionNodes.push(navigationNode);
   }
 }
 var init_utils = __esm({
@@ -1001,34 +1004,92 @@ function createXStateV4StateMachineOptions(params) {
     throw new Error("The document contains no frames.");
   }
   writer.block(() => {
-    writer.write("id:").space().quote().write(normalizeString(figma.currentPage.name)).quote().write(",").newLine();
+    const machineId = normalizeString(figma.currentPage.name);
+    writer.write("id:").space().quote().write(machineId).quote().write(",").newLine();
     writer.write("initial:").space().quote().write(normalizeString(firstFrame.name)).quote().write(",").newLine();
     writer.write("states:").block(() => {
       for (const frame of frames) {
         writer.write(normalizeString(frame.name)).write(":").inlineBlock(() => {
-          const navigateNodesInThisFrame = navigateOnInteractionNodes.filter(
+          const childNodesThatNavigate = navigateOnInteractionNodes.filter(
+            // TODO: support nested nodes
             (element) => element.parentFrame.id === frame.id
           );
-          const noMachineEvents = navigateNodesInThisFrame.length === 0;
+          const noMachineEvents = childNodesThatNavigate.length === 0;
           if (noMachineEvents) {
             writer.writeLine(
               "// This frame does not contain anything that navigates to other frames"
             );
             return;
           }
-          writer.write("on:").block(() => {
-            for (const navigateNodeInThisFrame of navigateNodesInThisFrame) {
+          const childNodesThatNavigateWithDelay = childNodesThatNavigate.filter(
+            (node) => "delay" in node
+          );
+          const childNodesThatNavigateWithoutDelay = childNodesThatNavigate.filter(
+            (node) => !("delay" in node)
+          );
+          if (childNodesThatNavigateWithoutDelay.length) {
+            writer.write("on:").block(() => {
+              for (const childNodeThatNavigate of childNodesThatNavigateWithoutDelay) {
+                const destinationFrame = frames.find(
+                  ({ id }) => childNodeThatNavigate.destinationFrameId === id
+                );
+                if (!destinationFrame)
+                  throw new Error(`Frame ${childNodeThatNavigate.destinationFrameId} not found`);
+                const eventName = normalizeString(
+                  `${childNodeThatNavigate.triggerType}_${childNodeThatNavigate.generatedName.toUpperCase()}`
+                );
+                writer.write(eventName).write(":").space().quote().write(normalizeString(destinationFrame.name)).quote().write(",").newLine();
+              }
+            });
+          }
+          if (childNodesThatNavigateWithoutDelay.length && childNodesThatNavigateWithDelay.length) {
+            writer.write(",").newLine();
+          }
+          console.log({ childNodesThatNavigateWithDelay, childNodesThatNavigateWithoutDelay });
+          if (childNodesThatNavigateWithDelay.length) {
+            const delayedEvents = childNodesThatNavigateWithDelay.map((childNodeThatNavigate) => {
+              const eventName = normalizeString(
+                `${childNodeThatNavigate.triggerType}_${childNodeThatNavigate.generatedName.toUpperCase()}`
+              );
+              const delay = (
+                // @ts-expect-error TS does not kno the proper triggerType because types are not enough narrowed down in `childNodesThatNavigateWithDelay` definition
+                childNodeThatNavigate.delay
+              );
               const destinationFrame = frames.find(
-                ({ id }) => navigateNodeInThisFrame.destinationFrameId === id
+                ({ id }) => childNodeThatNavigate.destinationFrameId === id
               );
               if (!destinationFrame)
-                throw new Error(`Frame ${navigateNodeInThisFrame.destinationFrameId} not found`);
-              const eventName = normalizeString(
-                `${navigateNodeInThisFrame.triggerType}_${navigateNodeInThisFrame.name.toUpperCase()}`
-              );
-              writer.write(eventName).write(":").space().quote().write(normalizeString(destinationFrame.name)).quote().write(",").newLine();
-            }
-          });
+                throw new Error(`Frame ${childNodeThatNavigate.destinationFrameId} not found`);
+              return {
+                delay,
+                eventName,
+                destinationFrame,
+                destinationStateName: `${eventName}_AFTER_${delay}`
+              };
+            });
+            writer.write("initial:").space().quote().write("idle").quote().write(",").newLine();
+            writer.write("states:").block(() => {
+              writer.write("idle:").inlineBlock(() => {
+                writer.write("on:").block(() => {
+                  for (const delayedEvent of delayedEvents) {
+                    const { eventName, destinationStateName } = delayedEvent;
+                    writer.write(eventName).write(":").space().quote().write(destinationStateName).quote().write(",").newLine();
+                  }
+                });
+              }).write(",").newLine();
+              for (const delayedEvent of delayedEvents) {
+                const { destinationStateName, delay, destinationFrame } = delayedEvent;
+                const destinationFrameName = `#${machineId}.${normalizeString(
+                  destinationFrame.name
+                )}`;
+                writer.write(destinationStateName).write(":").inlineBlock(() => {
+                  writer.write("after:").block(() => {
+                    writer.write(delay.toString()).write(":").space().quote().write(destinationFrameName).quote().write(",").newLine();
+                  });
+                }).write(",").newLine();
+              }
+            });
+          }
         }).write(",").newLine();
       }
     });
@@ -1098,7 +1159,7 @@ function main_default() {
     navigateOnInteractionNodes
   });
   console.log(writer.toString());
-  figma.closePlugin("Hello, mondo!");
+  figma.closePlugin("Hello, world!");
 }
 var init_main = __esm({
   "src/main.ts"() {
