@@ -891,6 +891,13 @@ var init_types = __esm({
 });
 
 // src/utils.ts
+function generateNewWriter() {
+  return new CodeBlockWriter({
+    useTabs: false,
+    useSingleQuote: true,
+    indentNumberOfSpaces: 2
+  });
+}
 function generateGroupName(node) {
   const groupHasGenericName = /^Group\s\d+$/.test(node.name);
   if (!groupHasGenericName)
@@ -995,6 +1002,7 @@ function matchElementThatNavigateOnMouseEvent(params) {
 var init_utils = __esm({
   "src/utils.ts"() {
     "use strict";
+    init_mod();
     init_types();
   }
 });
@@ -1145,26 +1153,33 @@ function main_default() {
   const mutableSimplifiedFrames = [];
   const mutableInteractiveNodes = [];
   traversePage({ mutableSimplifiedFrames, mutableInteractiveNodes });
-  const writer = new CodeBlockWriter({
-    useTabs: false,
-    useSingleQuote: true,
-    indentNumberOfSpaces: 2
-  });
-  createXStateV4Machine({
+  const writer = generateNewWriter();
+  const generatorOptions = {
     writer,
     currentPageName: figma.currentPage.name,
     simplifiedFrames: mutableSimplifiedFrames,
     interactiveNodes: mutableInteractiveNodes
-  });
+  };
+  console.log(
+    "generatorOptions",
+    JSON.stringify({
+      currentPageName: generatorOptions.currentPageName,
+      simplifiedFrames: generatorOptions.simplifiedFrames,
+      interactiveNodes: generatorOptions.interactiveNodes
+    }),
+    null,
+    2
+  );
+  createXStateV4Machine(generatorOptions);
   console.log(writer.toString());
   figma.closePlugin("Hello, world!");
 }
 var init_main = __esm({
   "src/main.ts"() {
     "use strict";
-    init_mod();
     init_generators();
     init_traverse();
+    init_utils();
   }
 });
 

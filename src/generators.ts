@@ -3,14 +3,14 @@ import CodeBlockWriter from 'code-block-writer'
 import { normalizeString } from './utils'
 import { type SimplifiedFrame, type InteractiveNode } from './types'
 
-type Params = {
+export type GeneratorOptions = {
   readonly currentPageName: string
   readonly writer: CodeBlockWriter
   readonly simplifiedFrames: SimplifiedFrame[]
   readonly interactiveNodes: InteractiveNode[]
 }
 
-export function createXStateV4StateMachineOptions(params: Params) {
+export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
   const { simplifiedFrames, interactiveNodes, writer, currentPageName } = params
 
   const firstFrame = simplifiedFrames[0]
@@ -124,7 +124,11 @@ export function createXStateV4StateMachineOptions(params: Params) {
                 // Event name
                 writer.write(eventName).write(':').space().quote()
                 // Target state
-                writer.write(`#${frameStateId}.${destinationStateName}`).quote().write(',').newLine()
+                writer
+                  .write(`#${frameStateId}.${destinationStateName}`)
+                  .quote()
+                  .write(',')
+                  .newLine()
               }
             })
 
@@ -185,6 +189,6 @@ export function createXStateV4StateMachineOptions(params: Params) {
   return writer
 }
 
-export function createXStateV4Machine(params: Params) {
+export function createXStateV4Machine(params: GeneratorOptions) {
   createXStateV4StateMachineOptions(params)
 }
