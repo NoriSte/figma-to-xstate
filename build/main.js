@@ -104,7 +104,7 @@ var init_mod = __esm({
       CHARS.OPEN_BRACE,
       CHARS.CLOSE_BRACE
     ]);
-    CodeBlockWriter = class {
+    CodeBlockWriter = class _CodeBlockWriter {
       /**
        * Constructor.
        * @param opts - Options for the writer.
@@ -671,7 +671,7 @@ var init_mod = __esm({
           writeIndividual(this, "");
           return;
         }
-        const items = text.split(CodeBlockWriter._newLineRegEx);
+        const items = text.split(_CodeBlockWriter._newLineRegEx);
         items.forEach((s, i) => {
           if (i > 0) {
             this._baseWriteNewline();
@@ -838,7 +838,7 @@ var init_mod = __esm({
           }
           return countOrText;
         } else if (typeof countOrText === "string") {
-          if (!CodeBlockWriter._spacesOrTabsRegEx.test(countOrText)) {
+          if (!_CodeBlockWriter._spacesOrTabsRegEx.test(countOrText)) {
             throw new Error("Provided string must be empty or only contain spaces or tabs.");
           }
           const { spacesCount, tabsCount } = getSpacesAndTabsCount(countOrText);
@@ -908,7 +908,8 @@ function generateGroupName(node) {
 function normalizeString(str) {
   return str.trim().replace(/[^a-zA-Z0-9]/g, "_");
 }
-function matchElementThatNavigateOnClick(mutableNavigateOnInteractionNodes, node, parentFrame) {
+function matchElementThatNavigateOnClick(params) {
+  const { mutableInteractiveNodes, node, parentFrame } = params;
   if (!("reactions" in node))
     return;
   for (const reaction of node.reactions) {
@@ -924,9 +925,9 @@ function matchElementThatNavigateOnClick(mutableNavigateOnInteractionNodes, node
       continue;
     if (!reaction.action.destinationId)
       continue;
-    mutableNavigateOnInteractionNodes.push({
+    mutableInteractiveNodes.push({
       node,
-      parentFrame,
+      parentFrameId: parentFrame.id,
       triggerType: reaction.trigger.type,
       destinationFrameId: reaction.action.destinationId,
       generatedName: isGroup(node) ? generateGroupName(node) : node.name
@@ -934,7 +935,8 @@ function matchElementThatNavigateOnClick(mutableNavigateOnInteractionNodes, node
     break;
   }
 }
-function matchElementThatNavigateOnDrag(mutableNavigateOnInteractionNodes, node, parentFrame) {
+function matchElementThatNavigateOnDrag(params) {
+  const { mutableInteractiveNodes, node, parentFrame } = params;
   if (!("reactions" in node))
     return;
   for (const reaction of node.reactions) {
@@ -950,9 +952,9 @@ function matchElementThatNavigateOnDrag(mutableNavigateOnInteractionNodes, node,
       continue;
     if (!reaction.action.destinationId)
       continue;
-    mutableNavigateOnInteractionNodes.push({
+    mutableInteractiveNodes.push({
       node,
-      parentFrame,
+      parentFrameId: parentFrame.id,
       triggerType: reaction.trigger.type,
       destinationFrameId: reaction.action.destinationId,
       generatedName: isGroup(node) ? generateGroupName(node) : node.name
@@ -960,7 +962,8 @@ function matchElementThatNavigateOnDrag(mutableNavigateOnInteractionNodes, node,
     break;
   }
 }
-function matchElementThatNavigateOnMouseEvent(mutableNavigateOnInteractionNodes, node, parentFrame) {
+function matchElementThatNavigateOnMouseEvent(params) {
+  const { mutableInteractiveNodes, node, parentFrame } = params;
   if (!("reactions" in node))
     return;
   for (const reaction of node.reactions) {
@@ -978,7 +981,7 @@ function matchElementThatNavigateOnMouseEvent(mutableNavigateOnInteractionNodes,
       continue;
     const navigationNode = {
       node,
-      parentFrame,
+      parentFrameId: parentFrame.id,
       triggerType: reaction.trigger.type,
       destinationFrameId: reaction.action.destinationId,
       generatedName: isGroup(node) ? generateGroupName(node) : node.name
@@ -986,7 +989,7 @@ function matchElementThatNavigateOnMouseEvent(mutableNavigateOnInteractionNodes,
     if (reaction.trigger.delay > 0) {
       navigationNode.delay = reaction.trigger.delay * 1e3;
     }
-    mutableNavigateOnInteractionNodes.push(navigationNode);
+    mutableInteractiveNodes.push(navigationNode);
   }
 }
 var init_utils = __esm({
@@ -998,21 +1001,22 @@ var init_utils = __esm({
 
 // src/generators.ts
 function createXStateV4StateMachineOptions(params) {
-  const { frames, navigateOnInteractionNodes, writer } = params;
-  const firstFrame = frames[0];
+  const { simplifiedFrames, interactiveNodes, writer, currentPageName } = params;
+  const firstFrame = simplifiedFrames[0];
   if (!firstFrame) {
     throw new Error("The document contains no frames.");
   }
   writer.block(() => {
-    const machineId = normalizeString(figma.currentPage.name);
+    const machineId = normalizeString(currentPageName);
     writer.write("id:").space().quote().write(machineId).quote().write(",").newLine();
     writer.write("initial:").space().quote().write(normalizeString(firstFrame.name)).quote().write(",").newLine();
     writer.write("states:").block(() => {
-      for (const frame of frames) {
-        writer.write(normalizeString(frame.name)).write(":").inlineBlock(() => {
-          const childNodesThatNavigate = navigateOnInteractionNodes.filter(
+      for (const simplifiedFrame of simplifiedFrames) {
+        const frameStateId = normalizeString(simplifiedFrame.name);
+        writer.write(frameStateId).write(":").inlineBlock(() => {
+          const childNodesThatNavigate = interactiveNodes.filter(
             // TODO: support nested nodes
-            (element) => element.parentFrame.id === frame.id
+            (element) => element.parentFrameId === simplifiedFrame.id
           );
           const noMachineEvents = childNodesThatNavigate.length === 0;
           if (noMachineEvents) {
@@ -1027,55 +1031,54 @@ function createXStateV4StateMachineOptions(params) {
           const childNodesThatNavigateWithoutDelay = childNodesThatNavigate.filter(
             (node) => !("delay" in node)
           );
-          if (childNodesThatNavigateWithoutDelay.length) {
-            writer.write("on:").block(() => {
-              for (const childNodeThatNavigate of childNodesThatNavigateWithoutDelay) {
-                const destinationFrame = frames.find(
-                  ({ id }) => childNodeThatNavigate.destinationFrameId === id
-                );
-                if (!destinationFrame)
-                  throw new Error(`Frame ${childNodeThatNavigate.destinationFrameId} not found`);
-                const eventName = normalizeString(
-                  `${childNodeThatNavigate.triggerType}_${childNodeThatNavigate.generatedName.toUpperCase()}`
-                );
-                writer.write(eventName).write(":").space().quote().write(normalizeString(destinationFrame.name)).quote().write(",").newLine();
-              }
-            });
-          }
-          if (childNodesThatNavigateWithoutDelay.length && childNodesThatNavigateWithDelay.length) {
-            writer.write(",").newLine();
-          }
-          console.log({ childNodesThatNavigateWithDelay, childNodesThatNavigateWithoutDelay });
-          if (childNodesThatNavigateWithDelay.length) {
-            const delayedEvents = childNodesThatNavigateWithDelay.map((childNodeThatNavigate) => {
-              const eventName = normalizeString(
-                `${childNodeThatNavigate.triggerType}_${childNodeThatNavigate.generatedName.toUpperCase()}`
-              );
-              const delay = (
-                // @ts-expect-error TS does not kno the proper triggerType because types are not enough narrowed down in `childNodesThatNavigateWithDelay` definition
-                childNodeThatNavigate.delay
-              );
-              const destinationFrame = frames.find(
+          const delayedEvents = childNodesThatNavigateWithDelay.map((childNodeThatNavigate) => {
+            const eventName = normalizeString(
+              `${childNodeThatNavigate.triggerType}_${childNodeThatNavigate.generatedName.toUpperCase()}`
+            );
+            const delay = (
+              // @ts-expect-error TS does not kno the proper triggerType because types are not enough narrowed down in `childNodesThatNavigateWithDelay` definition
+              childNodeThatNavigate.delay
+            );
+            const destinationFrame = simplifiedFrames.find(
+              ({ id }) => childNodeThatNavigate.destinationFrameId === id
+            );
+            if (!destinationFrame)
+              throw new Error(`Frame ${childNodeThatNavigate.destinationFrameId} not found`);
+            return {
+              delay,
+              eventName,
+              destinationFrame,
+              destinationStateName: `${eventName}_AFTER_${delay}`
+            };
+          });
+          writer.write("on:").block(() => {
+            for (const childNodeThatNavigate of childNodesThatNavigateWithoutDelay) {
+              const destinationFrame = simplifiedFrames.find(
                 ({ id }) => childNodeThatNavigate.destinationFrameId === id
               );
               if (!destinationFrame)
                 throw new Error(`Frame ${childNodeThatNavigate.destinationFrameId} not found`);
-              return {
-                delay,
-                eventName,
-                destinationFrame,
-                destinationStateName: `${eventName}_AFTER_${delay}`
-              };
-            });
+              const eventName = normalizeString(
+                `${childNodeThatNavigate.triggerType}_${childNodeThatNavigate.generatedName.toUpperCase()}`
+              );
+              writer.write(eventName).write(":").space().quote();
+              writer.write(normalizeString(destinationFrame.name)).quote();
+              writer.write(",").newLine();
+            }
+            for (const delayedEvent of delayedEvents) {
+              const { eventName, destinationStateName } = delayedEvent;
+              writer.write(eventName).write(":").space().quote();
+              writer.write(`#${frameStateId}.${destinationStateName}`).quote().write(",").newLine();
+            }
+          });
+          if (childNodesThatNavigateWithoutDelay.length && childNodesThatNavigateWithDelay.length) {
+            writer.write(",").newLine();
+          }
+          if (childNodesThatNavigateWithDelay.length) {
+            writer.write("id:").space().quote().write(frameStateId).quote().write(",").newLine();
             writer.write("initial:").space().quote().write("idle").quote().write(",").newLine();
             writer.write("states:").block(() => {
               writer.write("idle:").inlineBlock(() => {
-                writer.write("on:").block(() => {
-                  for (const delayedEvent of delayedEvents) {
-                    const { eventName, destinationStateName } = delayedEvent;
-                    writer.write(eventName).write(":").space().quote().write(destinationStateName).quote().write(",").newLine();
-                  }
-                });
               }).write(",").newLine();
               for (const delayedEvent of delayedEvents) {
                 const { destinationStateName, delay, destinationFrame } = delayedEvent;
@@ -1084,7 +1087,8 @@ function createXStateV4StateMachineOptions(params) {
                 )}`;
                 writer.write(destinationStateName).write(":").inlineBlock(() => {
                   writer.write("after:").block(() => {
-                    writer.write(delay.toString()).write(":").space().quote().write(destinationFrameName).quote().write(",").newLine();
+                    writer.write(delay.toString()).write(":").space().quote();
+                    writer.write(destinationFrameName).quote().write(",").newLine();
                   });
                 }).write(",").newLine();
               }
@@ -1108,24 +1112,21 @@ var init_generators = __esm({
 
 // src/traverse.ts
 function traversePage(params) {
-  const { mutableFrames, mutableNavigateOnInteractionNodes: mutableElementsThatNavigate } = params;
-  const skipInvisibleInstanceChildrenBackup = figma.skipInvisibleInstanceChildren;
+  const { mutableSimplifiedFrames, mutableInteractiveNodes } = params;
+  const { skipInvisibleInstanceChildren } = figma;
   figma.skipInvisibleInstanceChildren = true;
-  let lastFrame;
+  let parentFrame;
   figma.currentPage.findAll((node) => {
     if (isFrame(node)) {
-      mutableFrames.push({
-        id: node.id,
-        name: node.name
-      });
-      lastFrame = node;
+      mutableSimplifiedFrames.push({ id: node.id, name: node.name });
+      parentFrame = node;
     }
-    matchElementThatNavigateOnDrag(mutableElementsThatNavigate, node, lastFrame);
-    matchElementThatNavigateOnClick(mutableElementsThatNavigate, node, lastFrame);
-    matchElementThatNavigateOnMouseEvent(mutableElementsThatNavigate, node, lastFrame);
+    matchElementThatNavigateOnDrag({ mutableInteractiveNodes, node, parentFrame });
+    matchElementThatNavigateOnClick({ mutableInteractiveNodes, node, parentFrame });
+    matchElementThatNavigateOnMouseEvent({ mutableInteractiveNodes, node, parentFrame });
     return false;
   });
-  figma.skipInvisibleInstanceChildren = skipInvisibleInstanceChildrenBackup;
+  figma.skipInvisibleInstanceChildren = skipInvisibleInstanceChildren;
 }
 var init_traverse = __esm({
   "src/traverse.ts"() {
@@ -1141,22 +1142,19 @@ __export(main_exports, {
   default: () => main_default
 });
 function main_default() {
-  const frames = [];
-  const navigateOnInteractionNodes = [];
-  traversePage({
-    mutableFrames: frames,
-    mutableNavigateOnInteractionNodes: navigateOnInteractionNodes
-  });
+  const mutableSimplifiedFrames = [];
+  const mutableInteractiveNodes = [];
+  traversePage({ mutableSimplifiedFrames, mutableInteractiveNodes });
   const writer = new CodeBlockWriter({
     useTabs: false,
     useSingleQuote: true,
     indentNumberOfSpaces: 2
   });
-  console.log({ frames, navigateOnInteractionNodes });
   createXStateV4Machine({
     writer,
-    frames,
-    navigateOnInteractionNodes
+    currentPageName: figma.currentPage.name,
+    simplifiedFrames: mutableSimplifiedFrames,
+    interactiveNodes: mutableInteractiveNodes
   });
   console.log(writer.toString());
   figma.closePlugin("Hello, world!");

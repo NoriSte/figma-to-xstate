@@ -1,4 +1,4 @@
-import { isFrame, type SimplifiedFrame, type NavigateOnInteractionNode } from './types'
+import { isFrame, type SimplifiedFrame, type InteractiveNode } from './types'
 import {
   matchElementThatNavigateOnDrag,
   matchElementThatNavigateOnClick,
@@ -6,8 +6,8 @@ import {
 } from './utils'
 
 type Params = {
-  mutableFrames: SimplifiedFrame[]
-  mutableNavigateOnInteractionNodes: NavigateOnInteractionNode[]
+  mutableSimplifiedFrames: SimplifiedFrame[]
+  mutableInteractiveNodes: InteractiveNode[]
 }
 
 // --------------------------------------------------
@@ -16,32 +16,34 @@ type Params = {
 // FIGMA RELATED
 // --------------------------------------------------
 export function traversePage(params: Params) {
-  const { mutableFrames, mutableNavigateOnInteractionNodes: mutableElementsThatNavigate } = params
+  const { mutableSimplifiedFrames, mutableInteractiveNodes } = params
 
-  const skipInvisibleInstanceChildrenBackup = figma.skipInvisibleInstanceChildren
+  const { skipInvisibleInstanceChildren } = figma
 
-  // Skip over invisible nodes and their descendants inside instances
-  // for faster performance.
+  // Skip over invisible nodes and their descendants inside instances for faster performance.
   figma.skipInvisibleInstanceChildren = true
 
-  let lastFrame: FrameNode
+  let parentFrame: FrameNode
   figma.currentPage.findAll((node) => {
     // Loop optimized to traverse the full document only once
 
     if (isFrame(node)) {
-      mutableFrames.push({
-        id: node.id,
-        name: node.name,
-      })
-      lastFrame = node
+      mutableSimplifiedFrames.push({ id: node.id, name: node.name })
+
+      // The loop traverses all the document, so we need to keep track of the last frame we
+      // encounter to record the parent frame of the interactive nodes
+      parentFrame = node
     }
 
-    matchElementThatNavigateOnDrag(mutableElementsThatNavigate, node, lastFrame)
-    matchElementThatNavigateOnClick(mutableElementsThatNavigate, node, lastFrame)
-    matchElementThatNavigateOnMouseEvent(mutableElementsThatNavigate, node, lastFrame)
+    // TODO: optimize the following functions to not loop over reactions independently
+    matchElementThatNavigateOnDrag({ mutableInteractiveNodes, node, parentFrame })
+    matchElementThatNavigateOnClick({ mutableInteractiveNodes, node, parentFrame })
+    matchElementThatNavigateOnMouseEvent({ mutableInteractiveNodes, node, parentFrame })
 
+    // Ensure the loop does nto
     return false
   })
 
-  figma.skipInvisibleInstanceChildren = skipInvisibleInstanceChildrenBackup
+  // Restore the original value
+  figma.skipInvisibleInstanceChildren = skipInvisibleInstanceChildren
 }

@@ -1,4 +1,4 @@
-import { isGroup, type NavigateOnInteractionNode } from './types'
+import { isGroup, type InteractiveNode } from './types'
 
 export function generateGroupName(node: GroupNode) {
   const groupHasGenericName = /^Group\s\d+$/.test(node.name)
@@ -20,11 +20,13 @@ export function normalizeString(str: string) {
   return str.trim().replace(/[^a-zA-Z0-9]/g, '_')
 }
 
-export function matchElementThatNavigateOnClick(
-  mutableNavigateOnInteractionNodes: NavigateOnInteractionNode[],
-  node: SceneNode,
+export function matchElementThatNavigateOnClick(params: {
+  mutableInteractiveNodes: InteractiveNode[]
+  node: SceneNode
   parentFrame: FrameNode
-) {
+}) {
+  const { mutableInteractiveNodes, node, parentFrame } = params
+
   if (!('reactions' in node)) return
 
   for (const reaction of node.reactions) {
@@ -35,9 +37,9 @@ export function matchElementThatNavigateOnClick(
     if (reaction.action.navigation !== 'NAVIGATE') continue
     if (!reaction.action.destinationId) continue
 
-    mutableNavigateOnInteractionNodes.push({
+    mutableInteractiveNodes.push({
       node,
-      parentFrame,
+      parentFrameId: parentFrame.id,
       triggerType: reaction.trigger.type,
       destinationFrameId: reaction.action.destinationId,
       generatedName: isGroup(node) ? generateGroupName(node) : node.name,
@@ -47,11 +49,13 @@ export function matchElementThatNavigateOnClick(
   }
 }
 
-export function matchElementThatNavigateOnDrag(
-  mutableNavigateOnInteractionNodes: NavigateOnInteractionNode[],
-  node: SceneNode,
+export function matchElementThatNavigateOnDrag(params: {
+  mutableInteractiveNodes: InteractiveNode[]
+  node: SceneNode
   parentFrame: FrameNode
-) {
+}) {
+  const { mutableInteractiveNodes, node, parentFrame } = params
+
   if (!('reactions' in node)) return
 
   for (const reaction of node.reactions) {
@@ -62,9 +66,9 @@ export function matchElementThatNavigateOnDrag(
     if (reaction.action.navigation !== 'NAVIGATE') continue
     if (!reaction.action.destinationId) continue
 
-    mutableNavigateOnInteractionNodes.push({
+    mutableInteractiveNodes.push({
       node,
-      parentFrame,
+      parentFrameId: parentFrame.id,
       triggerType: reaction.trigger.type,
       destinationFrameId: reaction.action.destinationId,
       generatedName: isGroup(node) ? generateGroupName(node) : node.name,
@@ -74,11 +78,13 @@ export function matchElementThatNavigateOnDrag(
   }
 }
 
-export function matchElementThatNavigateOnMouseEvent(
-  mutableNavigateOnInteractionNodes: NavigateOnInteractionNode[],
-  node: SceneNode,
+export function matchElementThatNavigateOnMouseEvent(params: {
+  mutableInteractiveNodes: InteractiveNode[]
+  node: SceneNode
   parentFrame: FrameNode
-) {
+}) {
+  const { mutableInteractiveNodes, node, parentFrame } = params
+
   if (!('reactions' in node)) return
 
   for (const reaction of node.reactions) {
@@ -97,9 +103,9 @@ export function matchElementThatNavigateOnMouseEvent(
     if (reaction.action.navigation !== 'NAVIGATE') continue
     if (!reaction.action.destinationId) continue
 
-    const navigationNode: NavigateOnInteractionNode = {
+    const navigationNode: InteractiveNode = {
       node,
-      parentFrame,
+      parentFrameId: parentFrame.id,
       triggerType: reaction.trigger.type,
       destinationFrameId: reaction.action.destinationId,
       generatedName: isGroup(node) ? generateGroupName(node) : node.name,
@@ -109,7 +115,7 @@ export function matchElementThatNavigateOnMouseEvent(
       navigationNode.delay = reaction.trigger.delay * 1000
     }
 
-    mutableNavigateOnInteractionNodes.push(navigationNode)
+    mutableInteractiveNodes.push(navigationNode)
 
     // Can't break because the same node can have multiple mouse reactions
     // break

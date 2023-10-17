@@ -2,7 +2,7 @@
 // VARS
 
 import CodeBlockWriter from 'code-block-writer'
-import { type SimplifiedFrame, type NavigateOnInteractionNode } from './types'
+import { type SimplifiedFrame, type InteractiveNode } from './types'
 import { createXStateV4Machine } from './generators'
 import { traversePage } from './traverse'
 
@@ -11,13 +11,10 @@ import { traversePage } from './traverse'
 // -----------------------
 
 export default function () {
-  const frames: SimplifiedFrame[] = []
-  const navigateOnInteractionNodes: NavigateOnInteractionNode[] = []
+  const mutableSimplifiedFrames: SimplifiedFrame[] = []
+  const mutableInteractiveNodes: InteractiveNode[] = []
 
-  traversePage({
-    mutableFrames: frames,
-    mutableNavigateOnInteractionNodes: navigateOnInteractionNodes,
-  })
+  traversePage({ mutableSimplifiedFrames, mutableInteractiveNodes })
 
   const writer = new CodeBlockWriter({
     useTabs: false,
@@ -25,11 +22,11 @@ export default function () {
     indentNumberOfSpaces: 2,
   })
 
-  console.log({ frames, navigateOnInteractionNodes })
   createXStateV4Machine({
     writer,
-    frames,
-    navigateOnInteractionNodes,
+    currentPageName: figma.currentPage.name,
+    simplifiedFrames: mutableSimplifiedFrames,
+    interactiveNodes: mutableInteractiveNodes,
   })
   console.log(writer.toString())
 

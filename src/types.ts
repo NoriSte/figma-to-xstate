@@ -5,9 +5,9 @@
 export type SimplifiedFrame = Pick<FrameNode, 'id' | 'name'>
 type DelayInMilliseconds = number
 
-export type NavigateOnInteractionNode = {
+export type InteractiveNode = {
   node: SceneNode
-  parentFrame: FrameNode
+  parentFrameId: string
   destinationFrameId: string
 
   // The node name or the name of the first text element found inside
