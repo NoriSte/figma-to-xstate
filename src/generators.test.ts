@@ -41,16 +41,66 @@ describe('createXStateV4StateMachineOptions', () => {
   initial: 'Frame_1',
   states: {
     Frame_1:{
-      // This frame does not contain anything that navigates to other frames
+      type: 'final'
     },
     Frame_2:{
-      // This frame does not contain anything that navigates to other frames
+      type: 'final'
     },
     Frame_3:{
-      // This frame does not contain anything that navigates to other frames
+      type: 'final'
     },
     Frame_4:{
-      // This frame does not contain anything that navigates to other frames
+      type: 'final'
+    },
+  }
+}
+    `.trim()
+    )
+  })
+
+  it('When passed with the options generated from the "Simple frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
+    const writer = generateNewWriter()
+    const generatorOptions: GeneratorOptions = {
+      writer,
+      currentPageName: 'Page 1',
+      simplifiedFrames: [
+        { id: '1:2', name: 'Frame 1' },
+        { id: '1:3', name: 'Frame 2' },
+        { id: '1:4', name: 'Frame 3' },
+        { id: '1:5', name: 'Frame 4' },
+      ],
+      interactiveNodes: [
+        {
+          node: { id: '1:8' },
+          parentFrameId: '1:2',
+          triggerType: 'ON_CLICK',
+          destinationFrameId: '1:3',
+          generatedName: 'Navigate to Frame 2',
+        },
+      ],
+    }
+
+    createXStateV4StateMachineOptions(generatorOptions)
+
+    expect(writer.toString()).toEqual(
+      `
+{
+  id: 'Page_1',
+  initial: 'Frame_1',
+  states: {
+    Frame_1:{
+      on: {
+        ON_CLICK_NAVIGATE_TO_FRAME_2: 'Frame_2',
+      }
+    },
+    Frame_2:{
+      type: 'final'
+    },
+    Frame_3:{
+      type: 'final'
+    },
+    Frame_4:{
+      type: 'final'
     },
   }
 }

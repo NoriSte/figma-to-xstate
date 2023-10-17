@@ -1028,9 +1028,7 @@ function createXStateV4StateMachineOptions(params) {
           );
           const noMachineEvents = childNodesThatNavigate.length === 0;
           if (noMachineEvents) {
-            writer.writeLine(
-              "// This frame does not contain anything that navigates to other frames"
-            );
+            writer.writeLine("type: 'final'");
             return;
           }
           const childNodesThatNavigateWithDelay = childNodesThatNavigate.filter(
