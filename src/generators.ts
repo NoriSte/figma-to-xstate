@@ -1,17 +1,18 @@
 import CodeBlockWriter from 'code-block-writer'
 
 import { normalizeString } from './utils'
-import { type SimplifiedFrame, type InteractiveNode } from './types'
+import { type FigmaAgnosticDescriptor } from './types'
 
 export type GeneratorOptions = {
-  readonly currentPageName: string
   readonly writer: CodeBlockWriter
-  readonly simplifiedFrames: SimplifiedFrame[]
-  readonly interactiveNodes: InteractiveNode[]
+  readonly figmaAgnosticDescriptor: FigmaAgnosticDescriptor
 }
 
 export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
-  const { simplifiedFrames, interactiveNodes, writer, currentPageName } = params
+  const {
+    writer,
+    figmaAgnosticDescriptor: { simplifiedFrames, interactiveNodes, pageName },
+  } = params
 
   const firstFrame = simplifiedFrames[0]
   if (!firstFrame) {
@@ -19,7 +20,7 @@ export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
   }
 
   writer.block(() => {
-    const machineId = normalizeString(currentPageName)
+    const machineId = normalizeString(pageName)
 
     // Machine id
     writer.write('id:').space().quote().write(machineId).quote().write(',').newLine()

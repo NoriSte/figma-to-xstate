@@ -1009,13 +1009,16 @@ var init_utils = __esm({
 
 // src/generators.ts
 function createXStateV4StateMachineOptions(params) {
-  const { simplifiedFrames, interactiveNodes, writer, currentPageName } = params;
+  const {
+    writer,
+    figmaAgnosticDescriptor: { simplifiedFrames, interactiveNodes, pageName }
+  } = params;
   const firstFrame = simplifiedFrames[0];
   if (!firstFrame) {
     throw new Error("The document contains no frames.");
   }
   writer.block(() => {
-    const machineId = normalizeString(currentPageName);
+    const machineId = normalizeString(pageName);
     writer.write("id:").space().quote().write(machineId).quote().write(",").newLine();
     writer.write("initial:").space().quote().write(normalizeString(firstFrame.name)).quote().write(",").newLine();
     writer.write("states:").block(() => {
@@ -1118,7 +1121,12 @@ var init_generators = __esm({
 
 // src/traverse.ts
 function traversePage(params) {
-  const { mutableSimplifiedFrames, mutableInteractiveNodes } = params;
+  const {
+    figmaAgnosticDescriptor: {
+      simplifiedFrames: mutableSimplifiedFrames,
+      interactiveNodes: mutableInteractiveNodes
+    }
+  } = params;
   const { skipInvisibleInstanceChildren } = figma;
   figma.skipInvisibleInstanceChildren = true;
   let parentFrame;
@@ -1145,29 +1153,21 @@ var init_traverse = __esm({
 // src/main.ts
 var main_exports = {};
 __export(main_exports, {
-  default: () => main_default
+  default: () => main
 });
-function main_default() {
-  const mutableSimplifiedFrames = [];
-  const mutableInteractiveNodes = [];
-  traversePage({ mutableSimplifiedFrames, mutableInteractiveNodes });
+function main() {
+  const figmaAgnosticDescriptor = {
+    pageName: figma.currentPage.name,
+    simplifiedFrames: [],
+    interactiveNodes: []
+  };
+  traversePage({ figmaAgnosticDescriptor });
   const writer = generateNewWriter();
   const generatorOptions = {
     writer,
-    currentPageName: figma.currentPage.name,
-    simplifiedFrames: mutableSimplifiedFrames,
-    interactiveNodes: mutableInteractiveNodes
+    figmaAgnosticDescriptor
   };
-  console.log(
-    "generatorOptions",
-    JSON.stringify({
-      currentPageName: generatorOptions.currentPageName,
-      simplifiedFrames: generatorOptions.simplifiedFrames,
-      interactiveNodes: generatorOptions.interactiveNodes
-    }),
-    null,
-    2
-  );
+  console.log("generatorOptions", JSON.stringify(generatorOptions), null, 2);
   createXStateV4Machine(generatorOptions);
   console.log(writer.toString());
   figma.closePlugin("Hello, world!");

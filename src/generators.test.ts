@@ -8,9 +8,11 @@ describe('createXStateV4StateMachineOptions', () => {
 
     const generatorOptions: GeneratorOptions = {
       writer,
-      currentPageName: 'unitTestPage',
-      simplifiedFrames: [],
-      interactiveNodes: [],
+      figmaAgnosticDescriptor: {
+        pageName: 'unitTestPage',
+        simplifiedFrames: [],
+        interactiveNodes: [],
+      },
     }
 
     expect(() => createXStateV4StateMachineOptions(generatorOptions)).toThrowError(
@@ -20,16 +22,19 @@ describe('createXStateV4StateMachineOptions', () => {
 
   it('When passed with the options generated from the "Four empty frames" Figma file, then use the writer to compose a the corresponding state machine', () => {
     const writer = generateNewWriter()
+
     const generatorOptions: GeneratorOptions = {
       writer,
-      currentPageName: 'Page 1',
-      simplifiedFrames: [
-        { id: '1:2', name: 'Frame 1' },
-        { id: '1:3', name: 'Frame 2' },
-        { id: '1:4', name: 'Frame 3' },
-        { id: '1:5', name: 'Frame 4' },
-      ],
-      interactiveNodes: [],
+      figmaAgnosticDescriptor: {
+        pageName: 'Page 1',
+        simplifiedFrames: [
+          { id: '1:2', name: 'Frame 1' },
+          { id: '1:3', name: 'Frame 2' },
+          { id: '1:4', name: 'Frame 3' },
+          { id: '1:5', name: 'Frame 4' },
+        ],
+        interactiveNodes: [],
+      },
     }
 
     createXStateV4StateMachineOptions(generatorOptions)
@@ -60,24 +65,27 @@ describe('createXStateV4StateMachineOptions', () => {
 
   it('When passed with the options generated from the "Simple frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
     const writer = generateNewWriter()
+
     const generatorOptions: GeneratorOptions = {
       writer,
-      currentPageName: 'Page 1',
-      simplifiedFrames: [
-        { id: '1:2', name: 'Frame 1' },
-        { id: '1:3', name: 'Frame 2' },
-        { id: '1:4', name: 'Frame 3' },
-        { id: '1:5', name: 'Frame 4' },
-      ],
-      interactiveNodes: [
-        {
-          node: { id: '1:8' },
-          parentFrameId: '1:2',
-          triggerType: 'ON_CLICK',
-          destinationFrameId: '1:3',
-          generatedName: 'Navigate to Frame 2',
-        },
-      ],
+      figmaAgnosticDescriptor: {
+        pageName: 'Page 1',
+        simplifiedFrames: [
+          { id: '1:2', name: 'Frame 1' },
+          { id: '1:3', name: 'Frame 2' },
+          { id: '1:4', name: 'Frame 3' },
+          { id: '1:5', name: 'Frame 4' },
+        ],
+        interactiveNodes: [
+          {
+            node: { id: '1:8' },
+            parentFrameId: '1:2',
+            triggerType: 'ON_CLICK',
+            destinationFrameId: '1:3',
+            generatedName: 'Navigate to Frame 2',
+          },
+        ],
+      },
     }
 
     createXStateV4StateMachineOptions(generatorOptions)
@@ -110,31 +118,34 @@ describe('createXStateV4StateMachineOptions', () => {
 
   it('When passed with the options generated from the "Click and drag frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
     const writer = generateNewWriter()
+
     const generatorOptions: GeneratorOptions = {
       writer,
-      currentPageName: 'Page 1',
-      simplifiedFrames: [
-        { id: '1:2', name: 'Frame 1' },
-        { id: '1:3', name: 'Frame 2' },
-        { id: '1:4', name: 'Frame 3' },
-        { id: '1:5', name: 'Frame 4' },
-      ],
-      interactiveNodes: [
-        {
-          node: { id: '1:8' },
-          parentFrameId: '1:2',
-          triggerType: 'ON_CLICK',
-          destinationFrameId: '1:3',
-          generatedName: 'Click to navigate to Frame 2',
-        },
-        {
-          node: { id: '1:12' },
-          parentFrameId: '1:3',
-          triggerType: 'ON_DRAG',
-          destinationFrameId: '1:2',
-          generatedName: 'Drag to navigate to Frame 1',
-        },
-      ],
+      figmaAgnosticDescriptor: {
+        pageName: 'Page 1',
+        simplifiedFrames: [
+          { id: '1:2', name: 'Frame 1' },
+          { id: '1:3', name: 'Frame 2' },
+          { id: '1:4', name: 'Frame 3' },
+          { id: '1:5', name: 'Frame 4' },
+        ],
+        interactiveNodes: [
+          {
+            node: { id: '1:8' },
+            parentFrameId: '1:2',
+            triggerType: 'ON_CLICK',
+            destinationFrameId: '1:3',
+            generatedName: 'Click to navigate to Frame 2',
+          },
+          {
+            node: { id: '1:12' },
+            parentFrameId: '1:3',
+            triggerType: 'ON_DRAG',
+            destinationFrameId: '1:2',
+            generatedName: 'Drag to navigate to Frame 1',
+          },
+        ],
+      },
     }
 
     createXStateV4StateMachineOptions(generatorOptions)

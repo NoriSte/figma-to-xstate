@@ -2,7 +2,17 @@
 // TYPES
 // --------------------------------------------------
 
-export type SimplifiedFrame = Pick<FrameNode, 'id' | 'name'>
+/**
+ * Contain all the Figma prototype-related but agnostic data useful to generate the state machine.
+ * The object is a proxy between the traversed Figma document and the state machine generators.
+ */
+export type FigmaAgnosticDescriptor = {
+  readonly pageName: string
+  readonly simplifiedFrames: SimplifiedFrame[]
+  readonly interactiveNodes: InteractiveNode[]
+}
+
+type SimplifiedFrame = Pick<FrameNode, 'id' | 'name'>
 type DelayInMilliseconds = number
 
 export type InteractiveNode = {
