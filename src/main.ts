@@ -1,14 +1,7 @@
-// --------------------------------------------------
-// VARS
-
 import { type FigmaAgnosticDescriptor } from './types'
 import { type GeneratorOptions, createXStateV4Machine } from './generators'
 import { traversePage } from './traverse'
 import { generateNewWriter } from './utils'
-
-// --------------------------------------------------
-
-// -----------------------
 
 export default function main() {
   const figmaAgnosticDescriptor: FigmaAgnosticDescriptor = {
@@ -17,7 +10,10 @@ export default function main() {
     interactiveNodes: [],
   }
 
+  // --------------------------------------------------
+  // TRAVERSE
   traversePage({ figmaAgnosticDescriptor })
+  // --------------------------------------------------
 
   const writer = generateNewWriter()
 
@@ -28,7 +24,11 @@ export default function main() {
 
   console.log('generatorOptions', JSON.stringify(generatorOptions), null, 2)
 
+  // --------------------------------------------------
+  // GENERATE
   createXStateV4Machine(generatorOptions)
+  // --------------------------------------------------
+
   console.log(writer.toString())
 
   // Make sure to close the plugin when you're done. Otherwise the plugin will
