@@ -7,11 +7,14 @@
     "@create-figma-plugin/build": "2.6.1",
     "@create-figma-plugin/tsconfig": "2.6.1",
     "@figma/plugin-typings": "1.79.0",
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "vitest": "^0.34.6"
   },
   "scripts": {
     "build": "build-figma-plugin --typecheck --minify",
-    "watch": "build-figma-plugin --typecheck --watch"
+    "watch": "build-figma-plugin --typecheck --watch",
+    "test": "npm run test:unit",
+    "test:unit": "vitest"
   },
   "figma-plugin": {
     "editorType": [

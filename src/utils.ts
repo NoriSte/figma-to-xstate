@@ -1,4 +1,13 @@
+import CodeBlockWriter from 'code-block-writer'
 import { isGroup, type InteractiveNode } from './types'
+
+export function generateNewWriter(){
+  return new CodeBlockWriter({
+    useTabs: false,
+    useSingleQuote: true,
+    indentNumberOfSpaces: 2,
+  })
+}
 
 export function generateGroupName(node: GroupNode) {
   const groupHasGenericName = /^Group\s\d+$/.test(node.name)

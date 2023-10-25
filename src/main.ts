@@ -1,33 +1,34 @@
-// --------------------------------------------------
-// VARS
-
-import CodeBlockWriter from 'code-block-writer'
-import { type SimplifiedFrame, type InteractiveNode } from './types'
-import { createXStateV4Machine } from './generators'
+import { type FigmaAgnosticDescriptor } from './types'
+import { type GeneratorOptions, createXStateV4Machine } from './generators'
 import { traversePage } from './traverse'
+import { generateNewWriter } from './utils'
 
-// --------------------------------------------------
+export default function main() {
+  const figmaAgnosticDescriptor: FigmaAgnosticDescriptor = {
+    pageName: figma.currentPage.name,
+    simplifiedFrames: [],
+    interactiveNodes: [],
+  }
 
-// -----------------------
+  // --------------------------------------------------
+  // TRAVERSE
+  traversePage({ figmaAgnosticDescriptor })
+  // --------------------------------------------------
 
-export default function () {
-  const mutableSimplifiedFrames: SimplifiedFrame[] = []
-  const mutableInteractiveNodes: InteractiveNode[] = []
+  const writer = generateNewWriter()
 
-  traversePage({ mutableSimplifiedFrames, mutableInteractiveNodes })
-
-  const writer = new CodeBlockWriter({
-    useTabs: false,
-    useSingleQuote: true,
-    indentNumberOfSpaces: 2,
-  })
-
-  createXStateV4Machine({
+  const generatorOptions: GeneratorOptions = {
     writer,
-    currentPageName: figma.currentPage.name,
-    simplifiedFrames: mutableSimplifiedFrames,
-    interactiveNodes: mutableInteractiveNodes,
-  })
+    figmaAgnosticDescriptor,
+  }
+
+  console.log('generatorOptions', JSON.stringify(generatorOptions), null, 2)
+
+  // --------------------------------------------------
+  // GENERATE
+  createXStateV4Machine(generatorOptions)
+  // --------------------------------------------------
+
   console.log(writer.toString())
 
   // Make sure to close the plugin when you're done. Otherwise the plugin will

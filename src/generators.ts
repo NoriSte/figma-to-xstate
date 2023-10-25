@@ -1,17 +1,18 @@
 import CodeBlockWriter from 'code-block-writer'
 
 import { normalizeString } from './utils'
-import { type SimplifiedFrame, type InteractiveNode } from './types'
+import { type FigmaAgnosticDescriptor } from './types'
 
-type Params = {
-  readonly currentPageName: string
+export type GeneratorOptions = {
   readonly writer: CodeBlockWriter
-  readonly simplifiedFrames: SimplifiedFrame[]
-  readonly interactiveNodes: InteractiveNode[]
+  readonly figmaAgnosticDescriptor: FigmaAgnosticDescriptor
 }
 
-export function createXStateV4StateMachineOptions(params: Params) {
-  const { simplifiedFrames, interactiveNodes, writer, currentPageName } = params
+export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
+  const {
+    writer,
+    figmaAgnosticDescriptor: { simplifiedFrames, interactiveNodes, pageName },
+  } = params
 
   const firstFrame = simplifiedFrames[0]
   if (!firstFrame) {
@@ -19,7 +20,7 @@ export function createXStateV4StateMachineOptions(params: Params) {
   }
 
   writer.block(() => {
-    const machineId = normalizeString(currentPageName)
+    const machineId = normalizeString(pageName)
 
     // Machine id
     writer.write('id:').space().quote().write(machineId).quote().write(',').newLine()
@@ -54,9 +55,7 @@ export function createXStateV4StateMachineOptions(params: Params) {
 
             const noMachineEvents = childNodesThatNavigate.length === 0
             if (noMachineEvents) {
-              writer.writeLine(
-                '// This frame does not contain anything that navigates to other frames'
-              )
+              writer.writeLine("type: 'final'")
               return
             }
 
@@ -124,7 +123,11 @@ export function createXStateV4StateMachineOptions(params: Params) {
                 // Event name
                 writer.write(eventName).write(':').space().quote()
                 // Target state
-                writer.write(`#${frameStateId}.${destinationStateName}`).quote().write(',').newLine()
+                writer
+                  .write(`#${frameStateId}.${destinationStateName}`)
+                  .quote()
+                  .write(',')
+                  .newLine()
               }
             })
 
@@ -185,6 +188,6 @@ export function createXStateV4StateMachineOptions(params: Params) {
   return writer
 }
 
-export function createXStateV4Machine(params: Params) {
+export function createXStateV4Machine(params: GeneratorOptions) {
   createXStateV4StateMachineOptions(params)
 }

@@ -891,6 +891,13 @@ var init_types = __esm({
 });
 
 // src/utils.ts
+function generateNewWriter() {
+  return new CodeBlockWriter({
+    useTabs: false,
+    useSingleQuote: true,
+    indentNumberOfSpaces: 2
+  });
+}
 function generateGroupName(node) {
   const groupHasGenericName = /^Group\s\d+$/.test(node.name);
   if (!groupHasGenericName)
@@ -995,19 +1002,23 @@ function matchElementThatNavigateOnMouseEvent(params) {
 var init_utils = __esm({
   "src/utils.ts"() {
     "use strict";
+    init_mod();
     init_types();
   }
 });
 
 // src/generators.ts
 function createXStateV4StateMachineOptions(params) {
-  const { simplifiedFrames, interactiveNodes, writer, currentPageName } = params;
+  const {
+    writer,
+    figmaAgnosticDescriptor: { simplifiedFrames, interactiveNodes, pageName }
+  } = params;
   const firstFrame = simplifiedFrames[0];
   if (!firstFrame) {
     throw new Error("The document contains no frames.");
   }
   writer.block(() => {
-    const machineId = normalizeString(currentPageName);
+    const machineId = normalizeString(pageName);
     writer.write("id:").space().quote().write(machineId).quote().write(",").newLine();
     writer.write("initial:").space().quote().write(normalizeString(firstFrame.name)).quote().write(",").newLine();
     writer.write("states:").block(() => {
@@ -1020,9 +1031,7 @@ function createXStateV4StateMachineOptions(params) {
           );
           const noMachineEvents = childNodesThatNavigate.length === 0;
           if (noMachineEvents) {
-            writer.writeLine(
-              "// This frame does not contain anything that navigates to other frames"
-            );
+            writer.writeLine("type: 'final'");
             return;
           }
           const childNodesThatNavigateWithDelay = childNodesThatNavigate.filter(
@@ -1112,7 +1121,12 @@ var init_generators = __esm({
 
 // src/traverse.ts
 function traversePage(params) {
-  const { mutableSimplifiedFrames, mutableInteractiveNodes } = params;
+  const {
+    figmaAgnosticDescriptor: {
+      simplifiedFrames: mutableSimplifiedFrames,
+      interactiveNodes: mutableInteractiveNodes
+    }
+  } = params;
   const { skipInvisibleInstanceChildren } = figma;
   figma.skipInvisibleInstanceChildren = true;
   let parentFrame;
@@ -1139,32 +1153,31 @@ var init_traverse = __esm({
 // src/main.ts
 var main_exports = {};
 __export(main_exports, {
-  default: () => main_default
+  default: () => main
 });
-function main_default() {
-  const mutableSimplifiedFrames = [];
-  const mutableInteractiveNodes = [];
-  traversePage({ mutableSimplifiedFrames, mutableInteractiveNodes });
-  const writer = new CodeBlockWriter({
-    useTabs: false,
-    useSingleQuote: true,
-    indentNumberOfSpaces: 2
-  });
-  createXStateV4Machine({
+function main() {
+  const figmaAgnosticDescriptor = {
+    pageName: figma.currentPage.name,
+    simplifiedFrames: [],
+    interactiveNodes: []
+  };
+  traversePage({ figmaAgnosticDescriptor });
+  const writer = generateNewWriter();
+  const generatorOptions = {
     writer,
-    currentPageName: figma.currentPage.name,
-    simplifiedFrames: mutableSimplifiedFrames,
-    interactiveNodes: mutableInteractiveNodes
-  });
+    figmaAgnosticDescriptor
+  };
+  console.log("generatorOptions", JSON.stringify(generatorOptions), null, 2);
+  createXStateV4Machine(generatorOptions);
   console.log(writer.toString());
   figma.closePlugin("Hello, world!");
 }
 var init_main = __esm({
   "src/main.ts"() {
     "use strict";
-    init_mod();
     init_generators();
     init_traverse();
+    init_utils();
   }
 });
 

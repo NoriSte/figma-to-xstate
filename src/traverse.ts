@@ -1,22 +1,17 @@
-import { isFrame, type SimplifiedFrame, type InteractiveNode } from './types'
+import { isFrame, type FigmaAgnosticDescriptor } from './types'
 import {
   matchElementThatNavigateOnDrag,
   matchElementThatNavigateOnClick,
   matchElementThatNavigateOnMouseEvent,
 } from './utils'
 
-type Params = {
-  mutableSimplifiedFrames: SimplifiedFrame[]
-  mutableInteractiveNodes: InteractiveNode[]
-}
-
-// --------------------------------------------------
-
-// --------------------------------------------------
-// FIGMA RELATED
-// --------------------------------------------------
-export function traversePage(params: Params) {
-  const { mutableSimplifiedFrames, mutableInteractiveNodes } = params
+export function traversePage(params: { figmaAgnosticDescriptor: FigmaAgnosticDescriptor }) {
+  const {
+    figmaAgnosticDescriptor: {
+      simplifiedFrames: mutableSimplifiedFrames,
+      interactiveNodes: mutableInteractiveNodes,
+    },
+  } = params
 
   const { skipInvisibleInstanceChildren } = figma
 
@@ -30,8 +25,9 @@ export function traversePage(params: Params) {
     if (isFrame(node)) {
       mutableSimplifiedFrames.push({ id: node.id, name: node.name })
 
-      // The loop traverses all the document, so we need to keep track of the last frame we
-      // encounter to record the parent frame of the interactive nodes
+      // The loop traverses all the document, going frame by frame inside all the frame's nodes.
+      // We need to keep track of the last frame we encounter to record the parent frame of the
+      // interactive nodes
       parentFrame = node
     }
 
@@ -40,7 +36,7 @@ export function traversePage(params: Params) {
     matchElementThatNavigateOnClick({ mutableInteractiveNodes, node, parentFrame })
     matchElementThatNavigateOnMouseEvent({ mutableInteractiveNodes, node, parentFrame })
 
-    // Ensure the loop does nto
+    // Ensure the loop traverses the full document
     return false
   })
 
