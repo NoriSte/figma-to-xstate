@@ -11,10 +11,15 @@
     "vitest": "^0.34.6"
   },
   "scripts": {
+    "ci:install": "pnpm install --frozen-lockfile",
     "build": "build-figma-plugin --typecheck --minify",
     "watch": "build-figma-plugin --typecheck --watch",
     "test": "npm run test:unit",
     "test:unit": "vitest"
+  },
+  "packageManager": "pnpm@8.4.0",
+  "engines": {
+    "node": "^18.0.0 || >=20.0.0"
   },
   "figma-plugin": {
     "editorType": [
