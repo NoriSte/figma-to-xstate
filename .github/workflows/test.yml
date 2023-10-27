@@ -19,7 +19,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm ci:install
 
       - name: Run tests
         run: pnpm test

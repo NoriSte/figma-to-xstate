@@ -11,6 +11,7 @@
     "vitest": "^0.34.6"
   },
   "scripts": {
+    "ci:install": "pnpm install --frozen-lockfile",
     "build": "build-figma-plugin --typecheck --minify",
     "watch": "build-figma-plugin --typecheck --watch",
     "test": "npm run test:unit",
