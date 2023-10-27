@@ -4,23 +4,19 @@ on: [push, pull_request]
 jobs:
   short:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version:
-          - 20
-          - 18
-    name: Node.js ${{ matrix.node-version }} Quick
+
+    name: Node.js Quick
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-
-      - name: Set node
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
-          cache: pnpm
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
