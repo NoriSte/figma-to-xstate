@@ -177,4 +177,76 @@ describe('createXStateV4StateMachineOptions', () => {
     `.trim()
     )
   })
+
+  it.todo('MouseEvent reactions: these reactions work the same as Drag event, no need to test them')
+
+  it('When passed with the options generated from the "Touch up with delay frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
+    const writer = generateNewWriter()
+
+    const generatorOptions: GeneratorOptions = {
+      writer,
+      figmaAgnosticDescriptor: {
+        pageName: 'Page 1',
+        simplifiedFrames: [
+          { id: '1:2', name: 'Frame 1' },
+          { id: '1:3', name: 'Frame 2' },
+          { id: '207:8', name: 'Frame 3' },
+        ],
+        interactiveNodes: [
+          {
+            node: { id: '1:8' },
+            parentFrameId: '1:2',
+            triggerType: 'MOUSE_UP',
+            destinationFrameId: '1:3',
+            generatedName: 'Navigate to Frame 2',
+            delay: 2000,
+          },
+          {
+            node: { id: '207:11' },
+            parentFrameId: '1:2',
+            triggerType: 'ON_CLICK',
+            destinationFrameId: '207:8',
+            generatedName: 'Navigate to Frame 3',
+          },
+        ],
+      },
+    }
+
+    createXStateV4StateMachineOptions(generatorOptions)
+
+    expect(writer.toString()).toEqual(
+      `
+{
+  id: 'Page_1',
+  initial: 'Frame_1',
+  states: {
+    Frame_1:{
+      on: {
+        ON_CLICK_NAVIGATE_TO_FRAME_3: 'Frame_3',
+        MOUSE_UP_NAVIGATE_TO_FRAME_2: '#Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000',
+      }
+      ,
+      id: 'Frame_1',
+      initial: 'idle',
+      states: {
+        idle:{
+        },
+        MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000:{
+          after: {
+            2000: '#Page_1.Frame_2',
+          }
+        },
+      }
+    },
+    Frame_2:{
+      type: 'final'
+    },
+    Frame_3:{
+      type: 'final'
+    },
+  }
+}
+    `.trim()
+    )
+  })
 })

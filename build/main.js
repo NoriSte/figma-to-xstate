@@ -19,7 +19,7 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// node_modules/code-block-writer/esm/utils/string_utils.js
+// node_modules/.pnpm/code-block-writer@12.0.0/node_modules/code-block-writer/esm/utils/string_utils.js
 function escapeForWithinString(str, quoteKind) {
   return escapeChar(str, quoteKind).replace(newlineRegex, "\\$1");
 }
@@ -41,12 +41,12 @@ function getStringFromStrOrFunc(strOrFunc) {
 }
 var newlineRegex;
 var init_string_utils = __esm({
-  "node_modules/code-block-writer/esm/utils/string_utils.js"() {
+  "node_modules/.pnpm/code-block-writer@12.0.0/node_modules/code-block-writer/esm/utils/string_utils.js"() {
     newlineRegex = /(\r?\n)/g;
   }
 });
 
-// node_modules/code-block-writer/esm/mod.js
+// node_modules/.pnpm/code-block-writer@12.0.0/node_modules/code-block-writer/esm/mod.js
 function isRegExStart(currentChar, pastChar, pastPastChar) {
   return pastChar === CHARS.FORWARD_SLASH && currentChar !== CHARS.FORWARD_SLASH && currentChar !== CHARS.ASTERISK && pastPastChar !== CHARS.ASTERISK && pastPastChar !== CHARS.FORWARD_SLASH;
 }
@@ -71,7 +71,7 @@ function getSpacesAndTabsCount(str) {
 }
 var CommentChar, CHARS, isCharToHandle, CodeBlockWriter;
 var init_mod = __esm({
-  "node_modules/code-block-writer/esm/mod.js"() {
+  "node_modules/.pnpm/code-block-writer@12.0.0/node_modules/code-block-writer/esm/mod.js"() {
     init_string_utils();
     (function(CommentChar2) {
       CommentChar2[CommentChar2["Line"] = 0] = "Line";

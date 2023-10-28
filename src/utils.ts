@@ -1,7 +1,7 @@
 import CodeBlockWriter from 'code-block-writer'
 import { isGroup, type InteractiveNode } from './types'
 
-export function generateNewWriter(){
+export function generateNewWriter() {
   return new CodeBlockWriter({
     useTabs: false,
     useSingleQuote: true,
@@ -121,6 +121,9 @@ export function matchElementThatNavigateOnMouseEvent(params: {
     }
 
     if (reaction.trigger.delay > 0) {
+      // In the Figma UI, the delay can be set only if the device is mobile and the events are
+      // MOUSE_LEAVE, MOUSE_ENTER, TOUCH_DOWN, TOUCH_UP even if the TOUCH events are typed as mouse
+      // ones. It's better to specify this detail in the docs
       navigationNode.delay = reaction.trigger.delay * 1000
     }
 
