@@ -32,6 +32,7 @@ export function traversePage(params: { figmaAgnosticDescriptor: FigmaAgnosticDes
     }
 
     // TODO: optimize the following functions to not loop over reactions independently
+    // TODO: make the following functions pure
     matchElementThatNavigateOnDrag({ mutableInteractiveNodes, node, parentFrame })
     matchElementThatNavigateOnClick({ mutableInteractiveNodes, node, parentFrame })
     matchElementThatNavigateOnMouseEvent({ mutableInteractiveNodes, node, parentFrame })
