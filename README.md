@@ -1,4 +1,4 @@
-# Figma to XState
+# 🚧 Figma to XState
 
 A Figma plugin to convert a Figma prototype to an XState machine.
 
