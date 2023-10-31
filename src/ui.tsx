@@ -16,7 +16,7 @@ function UI({ content }: { content: string} ) {
   return (
     <Container space="medium">
       <VerticalSpace space="medium" />
-        <Text>Copied to Clipboard.</Text>
+        <Text>The XState V4 config has been copied to clipboard.</Text>
         <br />
         <Code>{content}</Code>
       <VerticalSpace space="medium" />
