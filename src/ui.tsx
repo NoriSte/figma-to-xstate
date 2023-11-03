@@ -1,27 +1,53 @@
-import {
-  Container,
-  render,
-  Text,
-  VerticalSpace,Code,Space
-} from "@create-figma-plugin/ui";
-import { h } from "preact";
-import { useEffect } from "preact/hooks";
-import {copyToClipboard} from 'figx'
+import { h } from 'preact'
+import { useEffect } from 'preact/hooks'
+import { copyToClipboard } from 'figx'
 
-function UI({ content }: { content: string} ) {
+import {
+  Code,
+  Text,
+  Banner,
+  render,
+  Container,
+  IconWarning32,
+  VerticalSpace,
+} from '@create-figma-plugin/ui'
+
+function SomethingWentWrong({ reason }: { reason: string }) {
+  return (
+    <Banner icon={<IconWarning32 />} variant="warning">
+      Something went wrong ({reason})
+    </Banner>
+  )
+}
+
+function PrintXStateV4Config({ generatedXStateConfig }: { generatedXStateConfig: string }) {
   useEffect(() => {
-    copyToClipboard(content)
-  }, [content])
+    copyToClipboard(generatedXStateConfig)
+  }, [generatedXStateConfig])
 
   return (
     <Container space="medium">
       <VerticalSpace space="medium" />
-        <Text>The XState V4 config has been copied to clipboard.</Text>
+      <Text>The XState V4 config has been copied to clipboard.</Text>
       <VerticalSpace space="medium" />
-        <Code>{content}</Code>
+      <Text>
+        <Code>{generatedXStateConfig}</Code>
+      </Text>
       <VerticalSpace space="medium" />
     </Container>
-  );
+  )
 }
 
-export default render(UI);
+/**
+ * The UI entry point rendered by create-figma-plugin
+ */
+function UI({ generatedXStateConfig }: { generatedXStateConfig: unknown }) {
+  if (typeof generatedXStateConfig !== 'string') {
+    console.log({ generatedXStateConfig })
+    return <SomethingWentWrong reason="The received generatedXStateConfig is not a string" />
+  }
+
+  return <PrintXStateV4Config generatedXStateConfig={generatedXStateConfig} />
+}
+
+export default render(UI)
