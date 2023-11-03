@@ -12,7 +12,7 @@ dependencies:
     specifier: 12.0.0
     version: 12.0.0
   figx:
-    specifier: ^0.1.3
+    specifier: 0.1.3
     version: 0.1.3
 
 devDependencies:
@@ -23,13 +23,13 @@ devDependencies:
     specifier: 2.6.1
     version: 2.6.1
   '@create-figma-plugin/ui':
-    specifier: ^3.0.2
+    specifier: 3.0.2
     version: 3.0.2(preact@10.18.1)
   '@figma/plugin-typings':
     specifier: 1.79.0
     version: 1.79.0
   preact:
-    specifier: ^10.18.1
+    specifier: 10.18.1
     version: 10.18.1
   typescript:
     specifier: 5.2.2
