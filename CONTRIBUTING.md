@@ -45,11 +45,7 @@ At the moment:
 Here is an non-exhausting list of things to do on the project, prioritize by importance.
 
 1. Cover more Figma's features (see the main [README](./README.md))
-2. Create an issue template
-3. Set up git hooks
-4. Set up ESlint v9 and [Styleint](https://stylelint.io/)
-5. Set up CI
-6. Set up automatic releases
+2. Set up automatic releases
 
 
 ## Development guide
