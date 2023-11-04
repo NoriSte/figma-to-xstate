@@ -4,12 +4,15 @@
     // These are the default Figma plugin settings that, for instance, forbid accessing `navigator`
     // (while create-figma-plugin does not forbid it)
     "target": "es6",
+    "jsx": "react-jsx",
+    "jsxFactory": "",
+    "jsxFragmentFactory": "",
+    "jsxImportSource": "preact",
     "lib": ["es6"],
-
     "typeRoots": ["./node_modules/@types", "./node_modules/@figma"],
     "strict": true,
-    "skipLibCheck": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": [

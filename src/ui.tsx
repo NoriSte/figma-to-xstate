@@ -10,7 +10,6 @@ import {
   VerticalSpace,
   render,
 } from '@create-figma-plugin/ui'
-import { h } from 'preact'
 
 function SomethingWentWrong({ reason }: { reason: string }) {
   return (
