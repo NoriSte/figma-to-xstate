@@ -1,5 +1,5 @@
 import CodeBlockWriter from 'code-block-writer'
-import { isGroup, type InteractiveNode } from './types'
+import { type InteractiveNode, isGroup } from './types'
 
 export function generateNewWriter() {
   return new CodeBlockWriter({
@@ -11,13 +11,16 @@ export function generateNewWriter() {
 
 export function generateGroupName(node: GroupNode) {
   const groupHasGenericName = /^Group\s\d+$/.test(node.name)
-  if (!groupHasGenericName) return node.name
+  if (!groupHasGenericName)
+    return node.name
 
   let childName = ''
 
   node.findAll((child) => {
-    if (childName) return false
-    if (child.type === 'TEXT') childName = child.name
+    if (childName)
+      return false
+    if (child.type === 'TEXT')
+      childName = child.name
 
     return false
   })
@@ -36,15 +39,22 @@ export function matchElementThatNavigateOnClick(params: {
 }) {
   const { mutableInteractiveNodes, node, parentFrame } = params
 
-  if (!('reactions' in node)) return
+  if (!('reactions' in node))
+    return
 
   for (const reaction of node.reactions) {
-    if (!reaction.trigger) continue
-    if (reaction.trigger.type !== 'ON_CLICK') continue
-    if (!reaction.action) continue
-    if (reaction.action.type !== 'NODE') continue
-    if (reaction.action.navigation !== 'NAVIGATE') continue
-    if (!reaction.action.destinationId) continue
+    if (!reaction.trigger)
+      continue
+    if (reaction.trigger.type !== 'ON_CLICK')
+      continue
+    if (!reaction.action)
+      continue
+    if (reaction.action.type !== 'NODE')
+      continue
+    if (reaction.action.navigation !== 'NAVIGATE')
+      continue
+    if (!reaction.action.destinationId)
+      continue
 
     mutableInteractiveNodes.push({
       node,
@@ -65,15 +75,22 @@ export function matchElementThatNavigateOnDrag(params: {
 }) {
   const { mutableInteractiveNodes, node, parentFrame } = params
 
-  if (!('reactions' in node)) return
+  if (!('reactions' in node))
+    return
 
   for (const reaction of node.reactions) {
-    if (!reaction.trigger) continue
-    if (reaction.trigger.type !== 'ON_DRAG') continue
-    if (!reaction.action) continue
-    if (reaction.action.type !== 'NODE') continue
-    if (reaction.action.navigation !== 'NAVIGATE') continue
-    if (!reaction.action.destinationId) continue
+    if (!reaction.trigger)
+      continue
+    if (reaction.trigger.type !== 'ON_DRAG')
+      continue
+    if (!reaction.action)
+      continue
+    if (reaction.action.type !== 'NODE')
+      continue
+    if (reaction.action.navigation !== 'NAVIGATE')
+      continue
+    if (!reaction.action.destinationId)
+      continue
 
     mutableInteractiveNodes.push({
       node,
@@ -94,23 +111,29 @@ export function matchElementThatNavigateOnMouseEvent(params: {
 }) {
   const { mutableInteractiveNodes, node, parentFrame } = params
 
-  if (!('reactions' in node)) return
+  if (!('reactions' in node))
+    return
 
   for (const reaction of node.reactions) {
-    if (!reaction.trigger) continue
+    if (!reaction.trigger)
+      continue
 
     if (
-      reaction.trigger.type !== 'MOUSE_ENTER' &&
-      reaction.trigger.type !== 'MOUSE_LEAVE' &&
-      reaction.trigger.type !== 'MOUSE_UP' &&
-      reaction.trigger.type !== 'MOUSE_DOWN'
+      reaction.trigger.type !== 'MOUSE_ENTER'
+      && reaction.trigger.type !== 'MOUSE_LEAVE'
+      && reaction.trigger.type !== 'MOUSE_UP'
+      && reaction.trigger.type !== 'MOUSE_DOWN'
     )
       continue
 
-    if (!reaction.action) continue
-    if (reaction.action.type !== 'NODE') continue
-    if (reaction.action.navigation !== 'NAVIGATE') continue
-    if (!reaction.action.destinationId) continue
+    if (!reaction.action)
+      continue
+    if (reaction.action.type !== 'NODE')
+      continue
+    if (reaction.action.navigation !== 'NAVIGATE')
+      continue
+    if (!reaction.action.destinationId)
+      continue
 
     const navigationNode: InteractiveNode = {
       node,

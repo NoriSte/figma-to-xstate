@@ -6,10 +6,9 @@
     "target": "es6",
     "lib": ["es6"],
 
+    "typeRoots": ["./node_modules/@types", "./node_modules/@figma"],
     "strict": true,
-    "noUncheckedIndexedAccess": true,
-
-    "typeRoots": ["./node_modules/@types", "./node_modules/@figma"]
+    "noUncheckedIndexedAccess": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": [
