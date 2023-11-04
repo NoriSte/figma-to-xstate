@@ -41,6 +41,6 @@
     "main": "src/main.ts"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm lint:fix"
+    "pre-commit": "pnpm typecheck && pnpm lint:fix"
   }
 }
