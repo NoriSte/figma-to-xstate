@@ -1,8 +1,8 @@
-import { type FigmaAgnosticDescriptor } from './types'
+import { showUI } from '@create-figma-plugin/utilities'
+import type { FigmaAgnosticDescriptor } from './types'
 import { type GeneratorOptions, createXStateV4Machine } from './generators'
 import { traversePage } from './traverse'
 import { generateNewWriter } from './utils'
-import { showUI } from '@create-figma-plugin/utilities'
 
 export default function main() {
   const figmaAgnosticDescriptor: FigmaAgnosticDescriptor = {

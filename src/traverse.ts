@@ -1,7 +1,7 @@
-import { isFrame, type FigmaAgnosticDescriptor } from './types'
+import { type FigmaAgnosticDescriptor, isFrame } from './types'
 import {
-  matchElementThatNavigateOnDrag,
   matchElementThatNavigateOnClick,
+  matchElementThatNavigateOnDrag,
   matchElementThatNavigateOnMouseEvent,
 } from './utils'
 

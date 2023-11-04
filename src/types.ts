@@ -6,7 +6,7 @@
  * Contain all the Figma prototype-related but agnostic data useful to generate the state machine.
  * The object is a proxy between the traversed Figma document and the state machine generators.
  */
-export type FigmaAgnosticDescriptor = {
+export interface FigmaAgnosticDescriptor {
   readonly pageName: string
   readonly simplifiedFrames: SimplifiedFrame[]
   readonly interactiveNodes: InteractiveNode[]
@@ -24,12 +24,12 @@ export type InteractiveNode = {
   generatedName: string
 } & (
   | {
-      triggerType: 'ON_CLICK' | 'ON_DRAG'
-    }
+    triggerType: 'ON_CLICK' | 'ON_DRAG'
+  }
   | {
-      triggerType: 'MOUSE_ENTER' | 'MOUSE_LEAVE' | 'MOUSE_UP' | 'MOUSE_DOWN'
-      delay?: DelayInMilliseconds
-    }
+    triggerType: 'MOUSE_ENTER' | 'MOUSE_LEAVE' | 'MOUSE_UP' | 'MOUSE_DOWN'
+    delay?: DelayInMilliseconds
+  }
 )
 
 // --------------------------------------------------

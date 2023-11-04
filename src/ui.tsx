@@ -1,21 +1,22 @@
-import { h } from 'preact'
 import { useEffect } from 'preact/hooks'
 import { copyToClipboard } from 'figx'
 
 import {
-  Code,
-  Text,
   Banner,
-  render,
+  Code,
   Container,
   IconWarning32,
+  Text,
   VerticalSpace,
+  render,
 } from '@create-figma-plugin/ui'
 
 function SomethingWentWrong({ reason }: { reason: string }) {
   return (
     <Banner icon={<IconWarning32 />} variant="warning">
-      Something went wrong ({reason})
+      Something went wrong (
+      {reason}
+      )
     </Banner>
   )
 }

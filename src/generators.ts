@@ -1,9 +1,9 @@
-import CodeBlockWriter from 'code-block-writer'
+import type CodeBlockWriter from 'code-block-writer'
 
 import { normalizeString } from './utils'
-import { type FigmaAgnosticDescriptor } from './types'
+import type { FigmaAgnosticDescriptor } from './types'
 
-export type GeneratorOptions = {
+export interface GeneratorOptions {
   readonly writer: CodeBlockWriter
   readonly figmaAgnosticDescriptor: FigmaAgnosticDescriptor
 }
@@ -15,9 +15,8 @@ export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
   } = params
 
   const firstFrame = simplifiedFrames[0]
-  if (!firstFrame) {
+  if (!firstFrame)
     throw new Error('The document contains no frames.')
-  }
 
   writer.block(() => {
     const machineId = normalizeString(pageName)
@@ -50,36 +49,36 @@ export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
 
             const childNodesThatNavigate = interactiveNodes.filter(
               // TODO: support nested nodes
-              (element) => element.parentFrameId === simplifiedFrame.id
+              element => element.parentFrameId === simplifiedFrame.id,
             )
 
             const noMachineEvents = childNodesThatNavigate.length === 0
             if (noMachineEvents) {
-              writer.writeLine("type: 'final'")
+              writer.writeLine('type: \'final\'')
               return
             }
 
             // TODO: narrow down to specific types
             const childNodesThatNavigateWithDelay = childNodesThatNavigate.filter(
-              (node) => 'delay' in node
+              node => 'delay' in node,
             )
             const childNodesThatNavigateWithoutDelay = childNodesThatNavigate.filter(
-              (node) => !('delay' in node)
+              node => !('delay' in node),
             )
 
             const delayedEvents = childNodesThatNavigateWithDelay.map((childNodeThatNavigate) => {
               const eventName = normalizeString(
                 `${
                   childNodeThatNavigate.triggerType
-                }_${childNodeThatNavigate.generatedName.toUpperCase()}`
+                }_${childNodeThatNavigate.generatedName.toUpperCase()}`,
               )
 
-              const delay: number =
+              const delay: number
                 // @ts-expect-error TS does not kno the proper triggerType because types are not enough narrowed down in `childNodesThatNavigateWithDelay` definition
-                childNodeThatNavigate.delay
+                = childNodeThatNavigate.delay
 
               const destinationFrame = simplifiedFrames.find(
-                ({ id }) => childNodeThatNavigate.destinationFrameId === id
+                ({ id }) => childNodeThatNavigate.destinationFrameId === id,
               )
 
               if (!destinationFrame)
@@ -97,7 +96,7 @@ export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
               // State events (without delay)
               for (const childNodeThatNavigate of childNodesThatNavigateWithoutDelay) {
                 const destinationFrame = simplifiedFrames.find(
-                  ({ id }) => childNodeThatNavigate.destinationFrameId === id
+                  ({ id }) => childNodeThatNavigate.destinationFrameId === id,
                 )
 
                 if (!destinationFrame)
@@ -106,7 +105,7 @@ export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
                 const eventName = normalizeString(
                   `${
                     childNodeThatNavigate.triggerType
-                  }_${childNodeThatNavigate.generatedName.toUpperCase()}`
+                  }_${childNodeThatNavigate.generatedName.toUpperCase()}`,
                 )
 
                 // Event name
@@ -132,8 +131,8 @@ export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
             })
 
             if (
-              childNodesThatNavigateWithoutDelay.length &&
-              childNodesThatNavigateWithDelay.length
+              childNodesThatNavigateWithoutDelay.length
+              && childNodesThatNavigateWithDelay.length
             ) {
               // Separate the two delay-free and delay-full groups
               writer.write(',').newLine()
@@ -159,7 +158,7 @@ export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
                 for (const delayedEvent of delayedEvents) {
                   const { destinationStateName, delay, destinationFrame } = delayedEvent
                   const destinationFrameName = `#${machineId}.${normalizeString(
-                    destinationFrame.name
+                    destinationFrame.name,
                   )}`
 
                   writer

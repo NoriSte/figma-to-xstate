@@ -3,7 +3,7 @@ import { type GeneratorOptions, createXStateV4StateMachineOptions } from './gene
 import { generateNewWriter } from './utils'
 
 describe('createXStateV4StateMachineOptions', () => {
-  it('When passed with an empty list of frames, then throws an error', () => {
+  it('when passed with an empty list of frames, then throws an error', () => {
     const writer = generateNewWriter()
 
     const generatorOptions: GeneratorOptions = {
@@ -16,11 +16,11 @@ describe('createXStateV4StateMachineOptions', () => {
     }
 
     expect(() => createXStateV4StateMachineOptions(generatorOptions)).toThrowError(
-      'The document contains no frames.'
+      'The document contains no frames.',
     )
   })
 
-  it('When passed with the options generated from the "Four empty frames" Figma file, then use the writer to compose a the corresponding state machine', () => {
+  it('when passed with the options generated from the "Four empty frames" Figma file, then use the writer to compose a the corresponding state machine', () => {
     const writer = generateNewWriter()
 
     const generatorOptions: GeneratorOptions = {
@@ -59,11 +59,11 @@ describe('createXStateV4StateMachineOptions', () => {
     },
   }
 }
-    `.trim()
+    `.trim(),
     )
   })
 
-  it('When passed with the options generated from the "Simple frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
+  it('when passed with the options generated from the "Simple frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
     const writer = generateNewWriter()
 
     const generatorOptions: GeneratorOptions = {
@@ -112,11 +112,11 @@ describe('createXStateV4StateMachineOptions', () => {
     },
   }
 }
-    `.trim()
+    `.trim(),
     )
   })
 
-  it('When passed with the options generated from the "Click and drag frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
+  it('when passed with the options generated from the "Click and drag frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
     const writer = generateNewWriter()
 
     const generatorOptions: GeneratorOptions = {
@@ -174,13 +174,13 @@ describe('createXStateV4StateMachineOptions', () => {
     },
   }
 }
-    `.trim()
+    `.trim(),
     )
   })
 
-  it.todo('MouseEvent reactions: these reactions work the same as Drag event, no need to test them')
+  it.todo('mouseEvent reactions: these reactions work the same as Drag event, no need to test them')
 
-  it('When passed with the options generated from the "Touch up with delay frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
+  it('when passed with the options generated from the "Touch up with delay frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
     const writer = generateNewWriter()
 
     const generatorOptions: GeneratorOptions = {
@@ -246,7 +246,7 @@ describe('createXStateV4StateMachineOptions', () => {
     },
   }
 }
-    `.trim()
+    `.trim(),
     )
   })
 })
