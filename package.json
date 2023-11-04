@@ -2,14 +2,14 @@
   "dependencies": {
     "@create-figma-plugin/utilities": "2.6.1",
     "code-block-writer": "12.0.0",
-    "figx": "^0.1.3"
+    "figx": "0.1.3"
   },
   "devDependencies": {
     "@create-figma-plugin/build": "2.6.1",
     "@create-figma-plugin/tsconfig": "2.6.1",
-    "@create-figma-plugin/ui": "^3.0.2",
+    "@create-figma-plugin/ui": "3.0.2",
     "@figma/plugin-typings": "1.79.0",
-    "preact": "^10.18.1",
+    "preact": "10.18.1",
     "typescript": "5.2.2",
     "vitest": "0.34.6"
   },
