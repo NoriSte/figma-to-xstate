@@ -54,47 +54,42 @@ Here is an non-exhausting list of things to do on the project, prioritize by imp
 
 ### Pre-requisites
 
+- [Pnpm](https://pnpm.io/) – v8.4.0
 - [Node.js](https://nodejs.org) – v18
 - [Figma desktop app](https://figma.com/downloads/)
+- The dependencies installed through
+```
+$ pnpm install
+```
 
 ### Build the plugin
 
 To build the plugin:
 
 ```
-$ npm run build
+$ pnpm build
 ```
 
 This will generate a [`manifest.json`](https://figma.com/plugin-docs/manifest/) file and a `build/`
 directory containing the JavaScript bundle(s) for the plugin.
 
-To watch for code changes and rebuild the plugin automatically:
-
-```
-$ npm run watch
-```
-
 
 ### Development
 
-Use `console.log` statements to inspect values in your code.
-
-To open the developer console, search for and run `Open Console` via the Quick Actions search bar.
+1. Download [Figma Desktop](https://www.figma.com/downloads/)
+2. In Figma, enable HMR through `Plugins (in the menu bar) -> Development -> Hot reload plugin`
+3. Watch for code changes and rebuild the plugin automatically
+```
+$ pnpm watch
+```
+4. Keep the unit tests running
+```
+$ pnpm test
+```
+5. Open the developer console, search for and run `Show/Hide console` via the Quick Actions search bar.
 
 You can use one of the available [Figma files](./src/figma-files/) to play with the plugin.
 
-
-### Debugging
-
-Use `console.log` statements to inspect values in your code.
-
-To open the developer console, search for and run `Open Console` via the Quick Actions search bar.
-
-### Launch tests
-
-```
-$ npm test
-```
 
 ## See also
 

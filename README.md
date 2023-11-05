@@ -20,17 +20,12 @@ conversion process, allowing later engineering rework the state machine with or 
   - [x] Click
   - [x] Drag
   - [ ] Key
-  - [x] Mouse enter
-  - [x] Mouse leave
-  - [x] Mouse leave
-  - [x] Mouse down
+  - [x] Mouse enter/leave
+  - [x] Mouse down/up (touch down/touch up)
     - [x] Delay for all the mouse events
     - [ ] Delays that override each other
-  - [ ] Mouse up
-  - [ ] After delay
   - [ ] Set variable
     - [ ] Support for variable collections
-- [ ] Support XState's final state type
 - [ ] Support nodes nested in other other nodes
 - [ ] Export Figma's interactions actions as XState's events
   - [x] Navigate
@@ -38,7 +33,7 @@ conversion process, allowing later engineering rework the state machine with or 
   - [ ] Back
   - [ ] Set variable
   - [ ] Conditional
-  - [ ] ~~Scroll to~~
+  - [ ] Scroll to
   - [ ] Open link
   - [ ] Open overlay
   - [ ] Swap overlay
@@ -46,6 +41,8 @@ conversion process, allowing later engineering rework the state machine with or 
 - [ ] Support for multiple prototypes in the same page
 - [ ] Support for custom prototype starting points
 - [ ] Export XState V5 machine
+
+
 
 
 ## FAQ
