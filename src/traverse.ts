@@ -1,8 +1,8 @@
 import { type FigmaAgnosticDescriptor, isFrame } from './types'
 import {
-  matchElementThatNavigateOnClick,
-  matchElementThatNavigateOnDrag,
-  matchElementThatNavigateOnMouseEvent,
+  matchNodeThatNavigateOnClick,
+  matchNodeThatNavigateOnDrag,
+  matchNodeThatNavigateOnMouseEvent,
 } from './utils'
 
 export function traversePage(params: { figmaAgnosticDescriptor: FigmaAgnosticDescriptor }) {
@@ -33,9 +33,9 @@ export function traversePage(params: { figmaAgnosticDescriptor: FigmaAgnosticDes
 
     // TODO: optimize the following functions to not loop over reactions independently
     // TODO: make the following functions pure
-    matchElementThatNavigateOnDrag({ mutableInteractiveNodes, node, parentFrame })
-    matchElementThatNavigateOnClick({ mutableInteractiveNodes, node, parentFrame })
-    matchElementThatNavigateOnMouseEvent({ mutableInteractiveNodes, node, parentFrame })
+    matchNodeThatNavigateOnDrag({ mutableInteractiveNodes, node, parentFrame })
+    matchNodeThatNavigateOnClick({ mutableInteractiveNodes, node, parentFrame })
+    matchNodeThatNavigateOnMouseEvent({ mutableInteractiveNodes, node, parentFrame })
 
     // Ensure the loop traverses the full document
     return false
