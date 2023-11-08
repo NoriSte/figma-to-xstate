@@ -1,5 +1,6 @@
 import CodeBlockWriter from 'code-block-writer'
-import { type InteractiveNode, isGroup } from './types'
+import { isGroup } from './types'
+import type { InteractiveNode, InteractiveNodeCommonProperties, InteractiveNodeTriggerProperties } from './types'
 
 export function generateNewWriter() {
   return new CodeBlockWriter({
@@ -32,7 +33,7 @@ export function normalizeString(str: string) {
   return str.trim().replace(/[^a-zA-Z0-9]/g, '_')
 }
 
-export function matchElementThatNavigateOnClick(params: {
+export function matchNodeThatNavigateOnClick(params: {
   mutableInteractiveNodes: InteractiveNode[]
   node: SceneNode
   parentFrame: FrameNode
@@ -51,24 +52,36 @@ export function matchElementThatNavigateOnClick(params: {
       continue
     if (reaction.action.type !== 'NODE')
       continue
-    if (reaction.action.navigation !== 'NAVIGATE')
-      continue
     if (!reaction.action.destinationId)
       continue
 
-    mutableInteractiveNodes.push({
-      node,
-      parentFrameId: parentFrame.id,
-      triggerType: reaction.trigger.type,
-      destinationFrameId: reaction.action.destinationId,
-      generatedName: isGroup(node) ? generateGroupName(node) : node.name,
-    })
-
-    break
+    if (reaction.action.navigation === 'NAVIGATE') {
+      mutableInteractiveNodes.push({
+        node,
+        parentFrameId: parentFrame.id,
+        triggerType: reaction.trigger.type,
+        navigationType: reaction.action.navigation,
+        destinationFrameId: reaction.action.destinationId,
+        generatedName: isGroup(node) ? generateGroupName(node) : node.name,
+      })
+      break
+    }
+    if (reaction.action.navigation === 'SCROLL_TO') {
+      mutableInteractiveNodes.push({
+        node,
+        parentFrameId: parentFrame.id,
+        triggerType: reaction.trigger.type,
+        destinationFrameId: parentFrame.id,
+        navigationType: reaction.action.navigation,
+        destinationNodeId: reaction.action.destinationId,
+        generatedName: isGroup(node) ? generateGroupName(node) : node.name,
+      })
+      break
+    }
   }
 }
 
-export function matchElementThatNavigateOnDrag(params: {
+export function matchNodeThatNavigateOnDrag(params: {
   mutableInteractiveNodes: InteractiveNode[]
   node: SceneNode
   parentFrame: FrameNode
@@ -87,24 +100,36 @@ export function matchElementThatNavigateOnDrag(params: {
       continue
     if (reaction.action.type !== 'NODE')
       continue
-    if (reaction.action.navigation !== 'NAVIGATE')
-      continue
     if (!reaction.action.destinationId)
       continue
 
-    mutableInteractiveNodes.push({
-      node,
-      parentFrameId: parentFrame.id,
-      triggerType: reaction.trigger.type,
-      destinationFrameId: reaction.action.destinationId,
-      generatedName: isGroup(node) ? generateGroupName(node) : node.name,
-    })
-
-    break
+    if (reaction.action.navigation === 'NAVIGATE') {
+      mutableInteractiveNodes.push({
+        node,
+        parentFrameId: parentFrame.id,
+        triggerType: reaction.trigger.type,
+        navigationType: reaction.action.navigation,
+        destinationFrameId: reaction.action.destinationId,
+        generatedName: isGroup(node) ? generateGroupName(node) : node.name,
+      })
+      break
+    }
+    if (reaction.action.navigation === 'SCROLL_TO') {
+      mutableInteractiveNodes.push({
+        node,
+        parentFrameId: parentFrame.id,
+        triggerType: reaction.trigger.type,
+        destinationFrameId: parentFrame.id,
+        navigationType: reaction.action.navigation,
+        destinationNodeId: reaction.action.destinationId,
+        generatedName: isGroup(node) ? generateGroupName(node) : node.name,
+      })
+      break
+    }
   }
 }
 
-export function matchElementThatNavigateOnMouseEvent(params: {
+export function matchNodeThatNavigateOnMouseEvent(params: {
   mutableInteractiveNodes: InteractiveNode[]
   node: SceneNode
   parentFrame: FrameNode
@@ -130,16 +155,14 @@ export function matchElementThatNavigateOnMouseEvent(params: {
       continue
     if (reaction.action.type !== 'NODE')
       continue
-    if (reaction.action.navigation !== 'NAVIGATE')
-      continue
     if (!reaction.action.destinationId)
       continue
 
-    const navigationNode: InteractiveNode = {
+    const navigationNodeCommonProperties: InteractiveNodeCommonProperties & InteractiveNodeTriggerProperties = {
       node,
       parentFrameId: parentFrame.id,
       triggerType: reaction.trigger.type,
-      destinationFrameId: reaction.action.destinationId,
+      destinationFrameId: parentFrame.id,
       generatedName: isGroup(node) ? generateGroupName(node) : node.name,
     }
 
@@ -147,12 +170,27 @@ export function matchElementThatNavigateOnMouseEvent(params: {
       // In the Figma UI, the delay can be set only if the device is mobile and the events are
       // MOUSE_LEAVE, MOUSE_ENTER, TOUCH_DOWN, TOUCH_UP even if the TOUCH events are typed as mouse
       // ones. It's better to specify this detail in the docs
-      navigationNode.delay = reaction.trigger.delay * 1000
+      navigationNodeCommonProperties.delay = reaction.trigger.delay * 1000
     }
 
-    mutableInteractiveNodes.push(navigationNode)
+    if (reaction.action.navigation === 'NAVIGATE') {
+      mutableInteractiveNodes.push({
+        ...navigationNodeCommonProperties,
+        navigationType: reaction.action.navigation,
 
-    // Can't break because the same node can have multiple mouse reactions
-    // break
+      })
+      // Can't break because the same node can have multiple mouse reactions
+      break
+    }
+    if (reaction.action.navigation === 'SCROLL_TO') {
+      mutableInteractiveNodes.push({
+        ...navigationNodeCommonProperties,
+        navigationType: reaction.action.navigation,
+        destinationNodeId: reaction.action.destinationId,
+
+      })
+      // Can't break because the same node can have multiple mouse reactions
+      break
+    }
   }
 }
