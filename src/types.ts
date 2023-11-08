@@ -15,22 +15,35 @@ export interface FigmaAgnosticDescriptor {
 type SimplifiedFrame = Pick<FrameNode, 'id' | 'name'>
 type DelayInMilliseconds = number
 
-export type InteractiveNode = {
+export type InteractiveNode = InteractiveNodeCommonProperties & InteractiveNodeTriggerProperties & InteractiveNodeNavigationProperties
+
+export interface InteractiveNodeCommonProperties {
   node: SceneNode
   parentFrameId: string
   destinationFrameId: string
 
   // The node name or the name of the first text element found inside
   generatedName: string
-} & (
-  | {
-    triggerType: 'ON_CLICK' | 'ON_DRAG'
-  }
-  | {
-    triggerType: 'MOUSE_ENTER' | 'MOUSE_LEAVE' | 'MOUSE_UP' | 'MOUSE_DOWN'
-    delay?: DelayInMilliseconds
-  }
-)
+}
+
+export type InteractiveNodeTriggerProperties = {
+  triggerType: 'ON_CLICK' | 'ON_DRAG'
+}
+| {
+  triggerType: 'MOUSE_ENTER' | 'MOUSE_LEAVE' | 'MOUSE_UP' | 'MOUSE_DOWN'
+
+  // In the Figma UI, the delay can be set only if the device is mobile and the events are
+  // MOUSE_LEAVE, MOUSE_ENTER, TOUCH_DOWN, TOUCH_UP even if the TOUCH events are typed as mouse
+  // ones. It's better to specify this detail in the docs
+  delay?: DelayInMilliseconds
+}
+
+type InteractiveNodeNavigationProperties = {
+  navigationType: 'NAVIGATE'
+} | {
+  navigationType: 'SCROLL_TO'
+  destinationNodeId: string
+}
 
 // --------------------------------------------------
 // GUARDS
