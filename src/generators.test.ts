@@ -45,15 +45,19 @@ describe('createXStateV4StateMachineOptions', () => {
         initial: 'Frame_1',
         states: {
           Frame_1:{
+            id: 'Frame_1',
             type: 'final'
           },
           Frame_2:{
+            id: 'Frame_2',
             type: 'final'
           },
           Frame_3:{
+            id: 'Frame_3',
             type: 'final'
           },
           Frame_4:{
+            id: 'Frame_4',
             type: 'final'
           },
         }
@@ -96,17 +100,21 @@ describe('createXStateV4StateMachineOptions', () => {
         initial: 'Frame_1',
         states: {
           Frame_1:{
+            id: 'Frame_1',
             on: {
               ON_CLICK_NAVIGATE_TO_FRAME_2: 'Frame_2',
             }
           },
           Frame_2:{
+            id: 'Frame_2',
             type: 'final'
           },
           Frame_3:{
+            id: 'Frame_3',
             type: 'final'
           },
           Frame_4:{
+            id: 'Frame_4',
             type: 'final'
           },
         }
@@ -158,19 +166,23 @@ describe('createXStateV4StateMachineOptions', () => {
         initial: 'Frame_1',
         states: {
           Frame_1:{
+            id: 'Frame_1',
             on: {
               ON_CLICK_CLICK_TO_NAVIGATE_TO_FRAME_2: 'Frame_2',
             }
           },
           Frame_2:{
+            id: 'Frame_2',
             on: {
               ON_DRAG_DRAG_TO_NAVIGATE_TO_FRAME_1: 'Frame_1',
             }
           },
           Frame_3:{
+            id: 'Frame_3',
             type: 'final'
           },
           Frame_4:{
+            id: 'Frame_4',
             type: 'final'
           },
         }
