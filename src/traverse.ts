@@ -1,17 +1,15 @@
-import { type FigmaAgnosticDescriptor, isFrame } from './types'
+import { isFrame } from './types'
+import type { InteractiveNode, SimplifiedFrameListItem } from './types'
 import {
+  findParentFrame,
   matchNodeThatNavigateOnClick,
   matchNodeThatNavigateOnDrag,
   matchNodeThatNavigateOnMouseEvent,
 } from './utils'
 
-export function traversePage(params: { figmaAgnosticDescriptor: FigmaAgnosticDescriptor }) {
-  const {
-    figmaAgnosticDescriptor: {
-      simplifiedFrames: mutableSimplifiedFrames,
-      interactiveNodes: mutableInteractiveNodes,
-    },
-  } = params
+export function traversePage() {
+  const simplifiedFramesList: SimplifiedFrameListItem[] = []
+  const interactiveNodes: InteractiveNode[] = []
 
   const { skipInvisibleInstanceChildren } = figma
 
@@ -23,7 +21,7 @@ export function traversePage(params: { figmaAgnosticDescriptor: FigmaAgnosticDes
     // Loop optimized to traverse the full document only once
 
     if (isFrame(node)) {
-      mutableSimplifiedFrames.push({ id: node.id, name: node.name })
+      simplifiedFramesList.push({ id: node.id, name: node.name, parentFrameId: findParentFrame(node.parent)?.id })
 
       // The loop traverses all the document, going frame by frame inside all the frame's nodes.
       // We need to keep track of the last frame we encounter to record the parent frame of the
@@ -33,9 +31,9 @@ export function traversePage(params: { figmaAgnosticDescriptor: FigmaAgnosticDes
 
     // TODO: optimize the following functions to not loop over reactions independently
     // TODO: make the following functions pure
-    matchNodeThatNavigateOnDrag({ mutableInteractiveNodes, node, parentFrame })
-    matchNodeThatNavigateOnClick({ mutableInteractiveNodes, node, parentFrame })
-    matchNodeThatNavigateOnMouseEvent({ mutableInteractiveNodes, node, parentFrame })
+    matchNodeThatNavigateOnDrag({ mutableInteractiveNodes: interactiveNodes, node, parentFrame })
+    matchNodeThatNavigateOnClick({ mutableInteractiveNodes: interactiveNodes, node, parentFrame })
+    matchNodeThatNavigateOnMouseEvent({ mutableInteractiveNodes: interactiveNodes, node, parentFrame })
 
     // Ensure the loop traverses the full document
     return false
@@ -43,4 +41,9 @@ export function traversePage(params: { figmaAgnosticDescriptor: FigmaAgnosticDes
 
   // Restore the original value
   figma.skipInvisibleInstanceChildren = skipInvisibleInstanceChildren
+
+  return {
+    simplifiedFramesList,
+    interactiveNodes,
+  }
 }

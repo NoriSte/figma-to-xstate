@@ -8,11 +8,21 @@
  */
 export interface FigmaAgnosticDescriptor {
   readonly pageName: string
-  readonly simplifiedFrames: SimplifiedFrame[]
+  readonly simplifiedFramesTree: SimplifiedFrameListTree
   readonly interactiveNodes: InteractiveNode[]
 }
 
 type SimplifiedFrame = Pick<FrameNode, 'id' | 'name'>
+
+export type SimplifiedFrameListItem = SimplifiedFrame & {
+  parentFrameId: string | undefined
+}
+export type SimplifiedFrameListTreeItem = SimplifiedFrame & {
+  framesChildren: SimplifiedFrame[]
+}
+
+export type SimplifiedFrameListTree = SimplifiedFrameListTreeItem[]
+
 type DelayInMilliseconds = number
 
 export type InteractiveNode = InteractiveNodeCommonProperties & InteractiveNodeTriggerProperties & InteractiveNodeNavigationProperties

@@ -1,6 +1,6 @@
 import CodeBlockWriter from 'code-block-writer'
 import { isGroup } from './types'
-import type { InteractiveNode, InteractiveNodeCommonProperties, InteractiveNodeTriggerProperties } from './types'
+import type { InteractiveNode, InteractiveNodeCommonProperties, InteractiveNodeTriggerProperties, SimplifiedFrameListItem, SimplifiedFrameListTree, SimplifiedFrameListTreeItem } from './types'
 
 export function generateNewWriter() {
   return new CodeBlockWriter({
@@ -193,4 +193,51 @@ export function matchNodeThatNavigateOnMouseEvent(params: {
       break
     }
   }
+}
+
+type ParentNode = BaseNodeMixin['parent']
+export function findParentFrame(node: ParentNode) {
+  if (!node)
+    return
+
+  if (node.type === 'FRAME')
+    return node
+
+  return findParentFrame(node.parent)
+}
+
+export function buildFrameTree(frameList: SimplifiedFrameListItem[]): SimplifiedFrameListTree {
+  const frameMap: { [id: string]: SimplifiedFrameListTreeItem } = {}
+
+  // First pass: create all nodes and add them to frameMap
+  frameList.forEach((frameItem) => {
+    frameMap[frameItem.id] = { ...frameItem, framesChildren: [] }
+  })
+
+  const rootFrames: SimplifiedFrameListTree = []
+
+  // Second pass: add children to their parent nodes and collect root nodes
+  frameList.forEach((frameItem) => {
+    const currentFrame = frameMap[frameItem.id]
+
+    // TS-only check
+    if (!currentFrame)
+      throw new Error(`${frameItem.id} does not exist`)
+
+    if (frameItem.parentFrameId) {
+      const parentFrame = frameMap[frameItem.parentFrameId]
+      if (parentFrame) {
+        parentFrame.framesChildren.push(currentFrame)
+      }
+      else {
+        // If parentFrameId is not found in frameMap, it's an error
+        throw new Error(`Parent frame with id ${frameItem.parentFrameId} not found`)
+      }
+    }
+    else {
+      rootFrames.push(currentFrame)
+    }
+  })
+
+  return rootFrames
 }

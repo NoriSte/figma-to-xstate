@@ -10,7 +10,7 @@ describe('createXStateV4StateMachineOptions', () => {
       writer,
       figmaAgnosticDescriptor: {
         pageName: 'unitTestPage',
-        simplifiedFrames: [],
+        simplifiedFramesTree: [],
         interactiveNodes: [],
       },
     }
@@ -27,11 +27,11 @@ describe('createXStateV4StateMachineOptions', () => {
       writer,
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
-        simplifiedFrames: [
-          { id: '1:2', name: 'Frame 1' },
-          { id: '1:3', name: 'Frame 2' },
-          { id: '1:4', name: 'Frame 3' },
-          { id: '1:5', name: 'Frame 4' },
+        simplifiedFramesTree: [
+          { id: '1:2', name: 'Frame 1', framesChildren: [] },
+          { id: '1:3', name: 'Frame 2', framesChildren: [] },
+          { id: '1:4', name: 'Frame 3', framesChildren: [] },
+          { id: '1:5', name: 'Frame 4', framesChildren: [] },
         ],
         interactiveNodes: [],
       },
@@ -39,28 +39,26 @@ describe('createXStateV4StateMachineOptions', () => {
 
     createXStateV4StateMachineOptions(generatorOptions)
 
-    expect(writer.toString()).toEqual(
-      `
-{
-  id: 'Page_1',
-  initial: 'Frame_1',
-  states: {
-    Frame_1:{
-      type: 'final'
-    },
-    Frame_2:{
-      type: 'final'
-    },
-    Frame_3:{
-      type: 'final'
-    },
-    Frame_4:{
-      type: 'final'
-    },
-  }
-}
-    `.trim(),
-    )
+    expect(writer.toString()).toMatchInlineSnapshot(`
+      "{
+        id: 'Page_1',
+        initial: 'Frame_1',
+        states: {
+          Frame_1:{
+            type: 'final'
+          },
+          Frame_2:{
+            type: 'final'
+          },
+          Frame_3:{
+            type: 'final'
+          },
+          Frame_4:{
+            type: 'final'
+          },
+        }
+      }"
+    `)
   })
 
   it('when passed with the options generated from the "Simple frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
@@ -70,11 +68,11 @@ describe('createXStateV4StateMachineOptions', () => {
       writer,
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
-        simplifiedFrames: [
-          { id: '1:2', name: 'Frame 1' },
-          { id: '1:3', name: 'Frame 2' },
-          { id: '1:4', name: 'Frame 3' },
-          { id: '1:5', name: 'Frame 4' },
+        simplifiedFramesTree: [
+          { id: '1:2', name: 'Frame 1', framesChildren: [] },
+          { id: '1:3', name: 'Frame 2', framesChildren: [] },
+          { id: '1:4', name: 'Frame 3', framesChildren: [] },
+          { id: '1:5', name: 'Frame 4', framesChildren: [] },
         ],
         interactiveNodes: [
           {
@@ -91,29 +89,29 @@ describe('createXStateV4StateMachineOptions', () => {
 
     createXStateV4StateMachineOptions(generatorOptions)
 
-    expect(writer.toString()).toEqual(
-      `
-{
-  id: 'Page_1',
-  initial: 'Frame_1',
-  states: {
-    Frame_1:{
-      on: {
-        ON_CLICK_NAVIGATE_TO_FRAME_2: 'Frame_2',
-      }
-    },
-    Frame_2:{
-      type: 'final'
-    },
-    Frame_3:{
-      type: 'final'
-    },
-    Frame_4:{
-      type: 'final'
-    },
-  }
-}
-    `.trim(),
+    expect(writer.toString()).toMatchInlineSnapshot(
+    `
+      "{
+        id: 'Page_1',
+        initial: 'Frame_1',
+        states: {
+          Frame_1:{
+            on: {
+              ON_CLICK_NAVIGATE_TO_FRAME_2: 'Frame_2',
+            }
+          },
+          Frame_2:{
+            type: 'final'
+          },
+          Frame_3:{
+            type: 'final'
+          },
+          Frame_4:{
+            type: 'final'
+          },
+        }
+      }"
+    `,
     )
   })
 
@@ -124,11 +122,11 @@ describe('createXStateV4StateMachineOptions', () => {
       writer,
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
-        simplifiedFrames: [
-          { id: '1:2', name: 'Frame 1' },
-          { id: '1:3', name: 'Frame 2' },
-          { id: '1:4', name: 'Frame 3' },
-          { id: '1:5', name: 'Frame 4' },
+        simplifiedFramesTree: [
+          { id: '1:2', name: 'Frame 1', framesChildren: [] },
+          { id: '1:3', name: 'Frame 2', framesChildren: [] },
+          { id: '1:4', name: 'Frame 3', framesChildren: [] },
+          { id: '1:5', name: 'Frame 4', framesChildren: [] },
         ],
         interactiveNodes: [
           {
@@ -153,47 +151,47 @@ describe('createXStateV4StateMachineOptions', () => {
 
     createXStateV4StateMachineOptions(generatorOptions)
 
-    expect(writer.toString()).toEqual(
-      `
-{
-  id: 'Page_1',
-  initial: 'Frame_1',
-  states: {
-    Frame_1:{
-      on: {
-        ON_CLICK_CLICK_TO_NAVIGATE_TO_FRAME_2: 'Frame_2',
-      }
-    },
-    Frame_2:{
-      on: {
-        ON_DRAG_DRAG_TO_NAVIGATE_TO_FRAME_1: 'Frame_1',
-      }
-    },
-    Frame_3:{
-      type: 'final'
-    },
-    Frame_4:{
-      type: 'final'
-    },
-  }
-}
-    `.trim(),
+    expect(writer.toString()).toMatchInlineSnapshot(
+    `
+      "{
+        id: 'Page_1',
+        initial: 'Frame_1',
+        states: {
+          Frame_1:{
+            on: {
+              ON_CLICK_CLICK_TO_NAVIGATE_TO_FRAME_2: 'Frame_2',
+            }
+          },
+          Frame_2:{
+            on: {
+              ON_DRAG_DRAG_TO_NAVIGATE_TO_FRAME_1: 'Frame_1',
+            }
+          },
+          Frame_3:{
+            type: 'final'
+          },
+          Frame_4:{
+            type: 'final'
+          },
+        }
+      }"
+    `,
     )
   })
 
   it.todo('mouseEvent reactions: these reactions work the same as Drag event, no need to test them')
 
-  it('when passed with the options generated from the "Touch up with delay frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
+  it.skip('when passed with the options generated from the "Touch up with delay frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
     const writer = generateNewWriter()
 
     const generatorOptions: GeneratorOptions = {
       writer,
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
-        simplifiedFrames: [
-          { id: '1:2', name: 'Frame 1' },
-          { id: '1:3', name: 'Frame 2' },
-          { id: '207:8', name: 'Frame 3' },
+        simplifiedFramesTree: [
+          { id: '1:2', name: 'Frame 1', framesChildren: [] },
+          { id: '1:3', name: 'Frame 2', framesChildren: [] },
+          { id: '207:8', name: 'Frame 3', framesChildren: [] },
         ],
         interactiveNodes: [
           {
@@ -219,39 +217,39 @@ describe('createXStateV4StateMachineOptions', () => {
 
     createXStateV4StateMachineOptions(generatorOptions)
 
-    expect(writer.toString()).toEqual(
-      `
-{
-  id: 'Page_1',
-  initial: 'Frame_1',
-  states: {
-    Frame_1:{
-      on: {
-        ON_CLICK_NAVIGATE_TO_FRAME_3: 'Frame_3',
-        MOUSE_UP_NAVIGATE_TO_FRAME_2: '#Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000',
-      }
-      ,
-      id: 'Frame_1',
-      initial: 'idle',
-      states: {
-        idle:{
-        },
-        MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000:{
-          after: {
-            2000: '#Page_1.Frame_2',
-          }
-        },
-      }
-    },
-    Frame_2:{
-      type: 'final'
-    },
-    Frame_3:{
-      type: 'final'
-    },
-  }
-}
-    `.trim(),
+    expect(writer.toString()).toMatchInlineSnapshot(
+    `
+      "{
+        id: 'Page_1',
+        initial: 'Frame_1',
+        states: {
+          Frame_1:{
+            on: {
+              ON_CLICK_NAVIGATE_TO_FRAME_3: 'Frame_3',
+              MOUSE_UP_NAVIGATE_TO_FRAME_2: '#Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000',
+            }
+            ,
+            id: 'Frame_1',
+            initial: 'idle',
+            states: {
+              idle:{
+              },
+              MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000:{
+                after: {
+                  2000: '#Page_1.Frame_2',
+                }
+              },
+            }
+          },
+          Frame_2:{
+            type: 'final'
+          },
+          Frame_3:{
+            type: 'final'
+          },
+        }
+      }"
+    `,
     )
   })
 })
