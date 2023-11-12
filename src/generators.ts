@@ -55,6 +55,16 @@ export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
             return
           }
 
+          //   // --> initial: 'idle',
+          writer.write('initial:').space().quote().write('idle').quote().write(',').newLine()
+
+          // --> states: {
+          writer.write('states:').block(() => {
+            // Idle state
+            // --> idle:{},
+            writer.write('idle:').inlineBlock(() => { /* The events have been managed above */ }).write(',').newLine()
+          })
+
           // TODO: narrow down to specific types
           const navigatingNodesThatRequireSubStates = childNodesThatNavigate.filter(
             node => doesNavigatingNodeRequireSubStates(node),

@@ -101,6 +101,11 @@ describe('createXStateV4StateMachineOptions', () => {
         states: {
           Frame_1:{
             id: 'Frame_1',
+            initial: 'idle',
+            states: {
+              idle:{
+              },
+            }
             on: {
               ON_CLICK_NAVIGATE_TO_FRAME_2: 'Frame_2',
             }
@@ -167,12 +172,22 @@ describe('createXStateV4StateMachineOptions', () => {
         states: {
           Frame_1:{
             id: 'Frame_1',
+            initial: 'idle',
+            states: {
+              idle:{
+              },
+            }
             on: {
               ON_CLICK_CLICK_TO_NAVIGATE_TO_FRAME_2: 'Frame_2',
             }
           },
           Frame_2:{
             id: 'Frame_2',
+            initial: 'idle',
+            states: {
+              idle:{
+              },
+            }
             on: {
               ON_DRAG_DRAG_TO_NAVIGATE_TO_FRAME_1: 'Frame_1',
             }
