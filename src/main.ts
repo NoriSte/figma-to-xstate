@@ -2,19 +2,19 @@ import { showUI } from '@create-figma-plugin/utilities'
 import type { FigmaAgnosticDescriptor } from './types'
 import { type GeneratorOptions, createXStateV4Machine } from './generators'
 import { traversePage } from './traverse'
-import { buildFrameTree, generateNewWriter } from './utils'
+import { generateNewWriter } from './utils'
 
 export default function main() {
   // --------------------------------------------------
   // TRAVERSE
-  const { simplifiedFramesList, interactiveNodes } = traversePage()
+  const { simplifiedFramesTree } = traversePage()
 
   // --------------------------------------------------
 
   const figmaAgnosticDescriptor: FigmaAgnosticDescriptor = {
     pageName: figma.currentPage.name,
-    simplifiedFramesTree: buildFrameTree(simplifiedFramesList),
-    interactiveNodes,
+    simplifiedFramesTree,
+
   }
 
   const writer = generateNewWriter()
@@ -24,7 +24,9 @@ export default function main() {
     figmaAgnosticDescriptor,
   }
 
-  console.log('generatorOptions', JSON.stringify(generatorOptions), null, 2)
+  console.log('generatorOptions', JSON.stringify(figmaAgnosticDescriptor), null, 2)
+
+  return
 
   // --------------------------------------------------
   // GENERATE

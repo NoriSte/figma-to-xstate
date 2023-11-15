@@ -1,6 +1,6 @@
 import CodeBlockWriter from 'code-block-writer'
 import { isGroup } from './types'
-import type { InteractiveNode, InteractiveNodeCommonProperties, InteractiveNodeTriggerProperties, SimplifiedFrameListItem, SimplifiedFrameListTree, SimplifiedFrameListTreeItem } from './types'
+import type { ReactionData, ReactionDataCommonProperties, ReactionDataTriggerProperties } from './types'
 
 export function generateNewWriter() {
   return new CodeBlockWriter({
@@ -10,7 +10,11 @@ export function generateNewWriter() {
   })
 }
 
-export function generateGroupName(node: GroupNode) {
+export function generateNodeName(node: BaseNode) {
+  return isGroup(node) ? generateGroupName(node) : node.name
+}
+
+function generateGroupName(node: GroupNode) {
   const groupHasGenericName = /^Group\s\d+$/.test(node.name)
   if (!groupHasGenericName)
     return node.name
@@ -33,15 +37,17 @@ export function normalizeString(str: string) {
   return str.trim().replace(/[^a-zA-Z0-9]/g, '_')
 }
 
-export function matchNodeThatNavigateOnClick(params: {
-  mutableInteractiveNodes: InteractiveNode[]
+export function getOnClickReactionData(params: {
+
   node: SceneNode
-  parentFrame: FrameNode
-}) {
-  const { mutableInteractiveNodes, node, parentFrame } = params
+
+}): ReactionData[] {
+  const { node } = params
 
   if (!('reactions' in node))
-    return
+    return []
+
+  const result: ReactionData[] = []
 
   for (const reaction of node.reactions) {
     if (!reaction.trigger)
@@ -56,40 +62,39 @@ export function matchNodeThatNavigateOnClick(params: {
       continue
 
     if (reaction.action.navigation === 'NAVIGATE') {
-      mutableInteractiveNodes.push({
+      result.push({
         node,
-        parentFrameId: parentFrame.id,
         triggerType: reaction.trigger.type,
         navigationType: reaction.action.navigation,
         destinationFrameId: reaction.action.destinationId,
-        generatedName: isGroup(node) ? generateGroupName(node) : node.name,
+        destinationFrameName: generateNodeName(figma.getNodeById(reaction.action.destinationId)!),
+        generatedName: generateNodeName(node),
       })
-      break
     }
     if (reaction.action.navigation === 'SCROLL_TO') {
-      mutableInteractiveNodes.push({
+      result.push({
         node,
-        parentFrameId: parentFrame.id,
         triggerType: reaction.trigger.type,
-        destinationFrameId: parentFrame.id,
         navigationType: reaction.action.navigation,
         destinationNodeId: reaction.action.destinationId,
-        generatedName: isGroup(node) ? generateGroupName(node) : node.name,
+        destinationNodeName: generateNodeName(figma.getNodeById(reaction.action.destinationId)!),
+        generatedName: generateNodeName(node),
       })
-      break
     }
   }
+  return result
 }
 
-export function matchNodeThatNavigateOnDrag(params: {
-  mutableInteractiveNodes: InteractiveNode[]
+export function getOnDragReactionData(params: {
   node: SceneNode
-  parentFrame: FrameNode
-}) {
-  const { mutableInteractiveNodes, node, parentFrame } = params
+
+}): ReactionData[] {
+  const { node } = params
 
   if (!('reactions' in node))
-    return
+    return []
+
+  const result: ReactionData[] = []
 
   for (const reaction of node.reactions) {
     if (!reaction.trigger)
@@ -104,40 +109,40 @@ export function matchNodeThatNavigateOnDrag(params: {
       continue
 
     if (reaction.action.navigation === 'NAVIGATE') {
-      mutableInteractiveNodes.push({
+      result.push({
         node,
-        parentFrameId: parentFrame.id,
         triggerType: reaction.trigger.type,
         navigationType: reaction.action.navigation,
         destinationFrameId: reaction.action.destinationId,
-        generatedName: isGroup(node) ? generateGroupName(node) : node.name,
+        destinationFrameName: generateNodeName(figma.getNodeById(reaction.action.destinationId)!),
+        generatedName: generateNodeName(node),
       })
-      break
     }
     if (reaction.action.navigation === 'SCROLL_TO') {
-      mutableInteractiveNodes.push({
+      result.push({
         node,
-        parentFrameId: parentFrame.id,
         triggerType: reaction.trigger.type,
-        destinationFrameId: parentFrame.id,
         navigationType: reaction.action.navigation,
         destinationNodeId: reaction.action.destinationId,
-        generatedName: isGroup(node) ? generateGroupName(node) : node.name,
+        destinationNodeName: generateNodeName(figma.getNodeById(reaction.action.destinationId)!),
+        generatedName: generateNodeName(node),
       })
-      break
     }
   }
+
+  return result
 }
 
-export function matchNodeThatNavigateOnMouseEvent(params: {
-  mutableInteractiveNodes: InteractiveNode[]
+export function getOnMouseEventReactionData(params: {
   node: SceneNode
-  parentFrame: FrameNode
-}) {
-  const { mutableInteractiveNodes, node, parentFrame } = params
+
+}): ReactionData[] {
+  const { node } = params
 
   if (!('reactions' in node))
-    return
+    return []
+
+  const result: ReactionData[] = []
 
   for (const reaction of node.reactions) {
     if (!reaction.trigger)
@@ -158,14 +163,13 @@ export function matchNodeThatNavigateOnMouseEvent(params: {
     if (!reaction.action.destinationId)
       continue
 
-    const navigationNodeCommonProperties: InteractiveNodeCommonProperties & InteractiveNodeTriggerProperties = {
+    const navigationNodeCommonProperties: ReactionDataCommonProperties & ReactionDataTriggerProperties = {
       node,
-      parentFrameId: parentFrame.id,
       triggerType: reaction.trigger.type,
-      destinationFrameId: parentFrame.id,
-      generatedName: isGroup(node) ? generateGroupName(node) : node.name,
+      generatedName: generateNodeName(node),
     }
 
+    // TODO: tell the user in case the delay is set to 0
     if (reaction.trigger.delay > 0) {
       // In the Figma UI, the delay can be set only if the device is mobile and the events are
       // MOUSE_LEAVE, MOUSE_ENTER, TOUCH_DOWN, TOUCH_UP even if the TOUCH events are typed as mouse
@@ -174,25 +178,27 @@ export function matchNodeThatNavigateOnMouseEvent(params: {
     }
 
     if (reaction.action.navigation === 'NAVIGATE') {
-      mutableInteractiveNodes.push({
+      result.push({
         ...navigationNodeCommonProperties,
         navigationType: reaction.action.navigation,
-
+        destinationFrameId: reaction.action.destinationId,
+        destinationFrameName: generateNodeName(figma.getNodeById(reaction.action.destinationId)!),
       })
       // Can't break because the same node can have multiple mouse reactions
-      break
     }
     if (reaction.action.navigation === 'SCROLL_TO') {
-      mutableInteractiveNodes.push({
+      result.push({
         ...navigationNodeCommonProperties,
         navigationType: reaction.action.navigation,
         destinationNodeId: reaction.action.destinationId,
+        destinationNodeName: generateNodeName(figma.getNodeById(reaction.action.destinationId)!),
 
       })
       // Can't break because the same node can have multiple mouse reactions
-      break
     }
   }
+
+  return result
 }
 
 type ParentNode = BaseNodeMixin['parent']
@@ -204,40 +210,4 @@ export function findParentFrame(node: ParentNode) {
     return node
 
   return findParentFrame(node.parent)
-}
-
-export function buildFrameTree(frameList: SimplifiedFrameListItem[]): SimplifiedFrameListTree {
-  const frameMap: { [id: string]: SimplifiedFrameListTreeItem } = {}
-
-  // First pass: create all nodes and add them to frameMap
-  frameList.forEach((frameItem) => {
-    frameMap[frameItem.id] = { ...frameItem, framesChildren: [] }
-  })
-
-  const rootFrames: SimplifiedFrameListTree = []
-
-  // Second pass: add children to their parent nodes and collect root nodes
-  frameList.forEach((frameItem) => {
-    const currentFrame = frameMap[frameItem.id]
-
-    // TS-only check
-    if (!currentFrame)
-      throw new Error(`${frameItem.id} does not exist`)
-
-    if (frameItem.parentFrameId) {
-      const parentFrame = frameMap[frameItem.parentFrameId]
-      if (parentFrame) {
-        parentFrame.framesChildren.push(currentFrame)
-      }
-      else {
-        // If parentFrameId is not found in frameMap, it's an error
-        throw new Error(`Parent frame with id ${frameItem.parentFrameId} not found`)
-      }
-    }
-    else {
-      rootFrames.push(currentFrame)
-    }
-  })
-
-  return rootFrames
 }

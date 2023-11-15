@@ -1,179 +1,165 @@
 import type CodeBlockWriter from 'code-block-writer'
 
 import { normalizeString } from './utils'
-import type { FigmaAgnosticDescriptor, InteractiveNode } from './types'
+import type { FigmaAgnosticDescriptor, ReactionData } from './types'
 
 export interface GeneratorOptions {
   readonly writer: CodeBlockWriter
   readonly figmaAgnosticDescriptor: FigmaAgnosticDescriptor
 }
 
+function createWriterUtils(writer: CodeBlockWriter) {
+  return {
+    stateId(id: string) { writer.newLine().write('id:').space().quote().write(id).quote().write(',') },
+    initialState(name: string) { writer.newLine().write('initial:').space().quote().write(normalizeString(name)).quote().write(',') },
+    stateBlock(stateName: string, callback: () => void) { writer.newLine().write(stateName).write(':').inlineBlock(callback).write(',') },
+    states(callback: () => void) { writer.newLine().write('states:').block(callback).write(',') },
+    on(callback: () => void) { writer.newLine().write('on:').block(callback).write(',') },
+    stateMachineConfig(callback: () => void) { writer.block(callback).write(',') },
+    typeFinal() { writer.writeLine('type: \'final\'').write(',') },
+    idleState() { writer.write('idle:').inlineBlock().write(',').newLine().write(',') },
+    eventGoTo(eventName: string, destinationState: string) { writer.newLine().write(eventName).write(':').space().quote().write(destinationState).quote().write(',') },
+    eventAfter(eventName: string, destinationState: string, delay: number) {
+      writer
+        .newLine()
+        .write(eventName)
+        .write(':')
+        .inlineBlock(() => {
+        /*
+        -->
+        after: {
+          2000: '#Page_1.Frame_2',
+        }
+        */
+          writer.write('after:').block(() => {
+          // --> 2000
+            writer.write(delay.toString()).write(':').space().quote()
+            // --> '#Page_1.Frame_2',
+            writer.write(destinationState).quote().write(',').newLine()
+          })
+        })
+        .write(',')
+    },
+  }
+}
+
 export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
   const {
     writer,
-    figmaAgnosticDescriptor: { simplifiedFramesTree, interactiveNodes, pageName },
+    figmaAgnosticDescriptor: { simplifiedFramesTree, pageName },
   } = params
+
+  const w = createWriterUtils(writer)
 
   const firstFrame = simplifiedFramesTree[0]
   if (!firstFrame)
     throw new Error('The document contains no frames.')
 
-  writer.block(() => {
-    const machineId = normalizeString(pageName)
+  const machineId = normalizeString(pageName)
 
-    // --> id: 'Page_1',
-    writer.write('id:').space().quote().write(machineId).quote().write(',').newLine()
-
-    // --> initial: 'Frame_1',
-    writer
-      .write('initial:').space().quote().write(normalizeString(firstFrame.name)).quote().write(',').newLine()
-
-    // --> states: {
-    writer.write('states:').block(() => {
+  w.stateMachineConfig(() => {
+    w.stateId(machineId)
+    w.initialState(firstFrame.name)
+    w.states(() => {
       for (const simplifiedFrame of simplifiedFramesTree) {
         // TODO: Support fragments with same name
         // ex. Frame_1
         const frameStateId = normalizeString(simplifiedFrame.name)
 
-        // State name
-        // --> Frame_1: {
-        writer.write(frameStateId).write(':').inlineBlock(() => {
+        // ex. Frame_1
+        w.stateBlock(frameStateId, () => {
           // State body
 
-          /// --> id: 'Frame_1'
-          writer.write('id:').space().quote().write(frameStateId).quote().write(',').newLine()
+          // TODO: make sure it's really unique
+          const requireSubStates = simplifiedFrame.reactionsData.some(node => 'delay' in node)
+          const needUniqueId = requireSubStates
 
-          const childNodesThatNavigate = interactiveNodes.filter(
-            // TODO: support nested nodes
-            element => element.parentFrameId === simplifiedFrame.id,
-          )
+          if (needUniqueId)
+            w.stateId(frameStateId)
 
-          const noMachineEvents = childNodesThatNavigate.length === 0
-          if (noMachineEvents) {
+          const noStateEvents = simplifiedFrame.reactionsData.length === 0
+          if (noStateEvents) {
             // --> type: 'final'
-            writer.writeLine('type: \'final\'')
+            w.typeFinal()
             return
           }
 
           //   // --> initial: 'idle',
-          writer.write('initial:').space().quote().write('idle').quote().write(',').newLine()
+          if (requireSubStates) {
+            w.initialState('idle')
 
-          // --> states: {
-          writer.write('states:').block(() => {
+            // --> states: {
+            w.states(() => {
             // Idle state
             // --> idle:{},
-            writer.write('idle:').inlineBlock(() => { /* The events have been managed above */ }).write(',').newLine()
-          })
+              w.idleState()
+
+              // TEMP --------------------------------------
+
+              for (const reactionData of simplifiedFrame.reactionsData) {
+                if (!('delay' in reactionData))
+                  continue
+                if (typeof reactionData.delay === 'undefined')
+                  continue
+
+                if (reactionData.navigationType === 'NAVIGATE') {
+                  // ex. MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY
+                  const eventName = normalizeString(`${reactionData.triggerType}_${reactionData.generatedName.toUpperCase()}`)
+
+                  // ex. #Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000
+                  const stateName = `${eventName}_AFTER_${reactionData.delay}`
+
+                  // ex. #Page_1.Frame_2
+                  const destinationPath = `#${machineId}.${normalizeString(reactionData.destinationFrameName)}`
+
+                  w.eventAfter(stateName, destinationPath, reactionData.delay)
+                }
+              }
+
+              // TEMP --------------------------------------
+            })
+          }
 
           // TODO: narrow down to specific types
-          const navigatingNodesThatRequireSubStates = childNodesThatNavigate.filter(
+          const navigatingNodesThatRequireSubStates = simplifiedFrame.reactionsData.filter(
             node => doesNavigatingNodeRequireSubStates(node),
           )
-          const navigatingNodesThatDoNotRequireSubStates = childNodesThatNavigate.filter(
+          const navigatingNodesThatDoNotRequireSubStates = simplifiedFrame.reactionsData.filter(
             node => !doesNavigatingNodeRequireSubStates(node),
           )
 
-          const delayedEvents = navigatingNodesThatRequireSubStates.map((childNodeThatNavigate) => {
-            // ex. MOUSE_UP_NAVIGATE_TO_FRAME_2
-            const eventName = normalizeString(`${childNodeThatNavigate.triggerType}_${childNodeThatNavigate.generatedName.toUpperCase()}`)
-
-            const delay: number
-                // @ts-expect-error TS does not kno the proper triggerType because types are not enough narrowed down in `childNodesThatNavigateWithDelay` definition
-                = childNodeThatNavigate.delay
-
-            const destinationFrame = simplifiedFramesTree.find(({ id }) => childNodeThatNavigate.destinationFrameId === id)
-
-            if (!destinationFrame)
-              throw new Error(`Frame ${childNodeThatNavigate.destinationFrameId} not found`)
-
-            // ex. #Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000
-            const destinationStateName = `${eventName}_AFTER_${delay}`
-
-            return { delay, eventName, destinationFrame, destinationStateName }
-          })
-
-          writer.write('on:').block(() => {
+          w.on(() => {
             // State events (without delay)
-            for (const childNodeThatNavigate of navigatingNodesThatDoNotRequireSubStates) {
-              const destinationFrame = simplifiedFramesTree.find(({ id }) => childNodeThatNavigate.destinationFrameId === id)
-
-              if (!destinationFrame)
-                throw new Error(`Frame ${childNodeThatNavigate.destinationFrameId} not found`)
+            for (const reactionData of simplifiedFrame.reactionsData) {
+              if (!('destinationFrameId' in reactionData))
+                continue
+              if (('delay' in reactionData))
+                continue
 
               // ex. ON_CLICK_NAVIGATE_TO_FRAME_3
-              const eventName = normalizeString(`${childNodeThatNavigate.triggerType}_${childNodeThatNavigate.generatedName.toUpperCase()}`)
+              const eventName = normalizeString(`${reactionData.triggerType}_${reactionData.generatedName.toUpperCase()}`)
 
-              // --> ON_CLICK_NAVIGATE_TO_FRAME_3: 'Frame_3',
-              writer.write(eventName).write(':').space().quote()
-              writer.write(normalizeString(destinationFrame.name)).quote()
-              writer.write(',').newLine() // TODO: should be avoided at the last event
+              w.eventGoTo(eventName, normalizeString(reactionData.destinationFrameName))
             }
 
             // State events (with delay)
-            for (const delayedEvent of delayedEvents) {
-              const { eventName, destinationStateName } = delayedEvent
+            for (const reactionData of simplifiedFrame.reactionsData) {
+              if (!('delay' in reactionData))
+                continue
+
+              // ex. MOUSE_UP_NAVIGATE_TO_FRAME_2
+              const eventName = normalizeString(`${reactionData.triggerType}_${reactionData.generatedName.toUpperCase()}`)
+              // ex. MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000
+              const destinationStateName = `${eventName}_AFTER_${reactionData.delay}`
+
+              // ex. #Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000
+              const fullDestination = `#${frameStateId}.${destinationStateName}`
 
               // --> MOUSE_UP_NAVIGATE_TO_FRAME_2: '#Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000',
-              writer.write(eventName).write(':').space().quote()
-              writer.write(`#${frameStateId}.${destinationStateName}`).quote().write(',').newLine()
+              w.eventGoTo(eventName, fullDestination)
             }
           })
-
-          if (
-            navigatingNodesThatDoNotRequireSubStates.length
-              && navigatingNodesThatRequireSubStates.length
-          ) {
-            // Separate the delay-free and delay-full groups
-            writer.write(',').newLine()
-          }
-
-          // if (navigatingNodesThatRequireSubStates.length) {
-          //   // --> id: 'Frame_1',
-          //   writer.write('id:').space().quote().write(frameStateId).quote().write(',').newLine()
-
-          //   // --> initial: 'idle',
-          //   writer.write('initial:').space().quote().write('idle').quote().write(',').newLine()
-
-          //   // --> states: {
-          //   writer.write('states:').block(() => {
-          //     // Idle state
-          //     // --> idle:{},
-          //     writer.write('idle:').inlineBlock(() => { /* The events have been managed above */ }).write(',').newLine()
-
-          //     // Delayed events state
-          //     for (const delayedEvent of delayedEvents) {
-          //       const { destinationStateName, delay, destinationFrame } = delayedEvent
-
-          //       // ex. #Page_1.Frame_2
-          //       const destinationFrameName = `#${machineId}.${normalizeString(
-          //           destinationFrame.name,
-          //         )}`
-
-          //       writer
-          //         .write(destinationStateName)
-          //         .write(':')
-          //         .inlineBlock(() => {
-          //           /*
-          //           -->
-          //           after: {
-          //             2000: '#Page_1.Frame_2',
-          //           }
-          //           */
-          //           writer.write('after:').block(() => {
-          //             // --> 2000
-          //             writer.write(delay.toString()).write(':').space().quote()
-          //             // --> '#Page_1.Frame_2',
-          //             writer.write(destinationFrameName).quote().write(',').newLine()
-          //           })
-          //         })
-          //         .write(',')
-          //         .newLine() // TODO: should be avoided at the last event
-          //     }
-          //   })
-          // }
         })
-          .write(',')
-          .newLine()
       }
     })
   })
@@ -185,6 +171,6 @@ export function createXStateV4Machine(params: GeneratorOptions) {
   createXStateV4StateMachineOptions(params)
 }
 
-function doesNavigatingNodeRequireSubStates(node: InteractiveNode) {
+function doesNavigatingNodeRequireSubStates(node: ReactionData) {
   return 'delay' in node || node.navigationType === 'SCROLL_TO'
 }
