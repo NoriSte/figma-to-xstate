@@ -41,23 +41,24 @@ describe('createXStateV4StateMachineOptions', () => {
 
     expect(writer.toString()).toMatchInlineSnapshot(`
       "{
-        id: 'Page_1',
-        initial: 'Frame_1',
-        states: {
+        id:'Page_1',
+        initial:'Frame_1',
+        states:{
           Frame_1:{
-            type: 'final'
+            type:'final',
           },
           Frame_2:{
-            type: 'final'
+            type:'final',
           },
           Frame_3:{
-            type: 'final'
+            type:'final',
           },
           Frame_4:{
-            type: 'final'
+            type:'final',
           },
-        }
-      }"
+        },
+      }
+      ,"
     `)
   })
 
@@ -94,19 +95,20 @@ describe('createXStateV4StateMachineOptions', () => {
     expect(writer.toString()).toMatchInlineSnapshot(
     `
       "{
-        id: 'Page_1',
-        initial: 'Frame_1',
-        states: {
+        id:'Page_1',
+        initial:'Frame_1',
+        states:{
           Frame_1:{
-            on: {
-              ON_CLICK_NAVIGATE_TO_FRAME_2: 'Frame_2',
-            }
+            on:{
+              ON_CLICK_NAVIGATE_TO_FRAME_2:'Frame_2',
+            },
           },
           Frame_2:{
-            type: 'final'
+            type:'final',
           },
-        }
-      }"
+        },
+      }
+      ,"
     `,
     )
   })
@@ -151,21 +153,22 @@ describe('createXStateV4StateMachineOptions', () => {
     expect(writer.toString()).toMatchInlineSnapshot(
     `
       "{
-        id: 'Page_1',
-        initial: 'Frame_1',
-        states: {
+        id:'Page_1',
+        initial:'Frame_1',
+        states:{
           Frame_1:{
-            on: {
-              ON_CLICK_CLICK_TO_NAVIGATE_TO_FRAME_2: 'Frame_2',
-            }
+            on:{
+              ON_CLICK_CLICK_TO_NAVIGATE_TO_FRAME_2:'Frame_2',
+            },
           },
           Frame_2:{
-            on: {
-              ON_DRAG_DRAG_TO_NAVIGATE_TO_FRAME_1: 'Frame_1',
-            }
+            on:{
+              ON_DRAG_DRAG_TO_NAVIGATE_TO_FRAME_1:'Frame_1',
+            },
           },
-        }
-      }"
+        },
+      }
+      ,"
     `,
     )
   })
@@ -218,34 +221,34 @@ describe('createXStateV4StateMachineOptions', () => {
     expect(writer.toString()).toMatchInlineSnapshot(
     `
       "{
-        id: 'Page_1',
-        initial: 'Frame_1',
-        states: {
+        id:'Page_1',
+        initial:'Frame_1',
+        states:{
           Frame_1:{
-            id: 'Frame_1',
-            initial: 'idle',
-            states: {
-              idle:{
-              },
+            id:'Frame_1',
+            initial:'idle',
+            states:{
+              idle:{},
               MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY_AFTER_2000:{
-                after: {
-                  2000: '#Page_1.Frame_2',
-                }
+                after:{
+                  2000:'#Page_1.Frame_2',
+                },
               },
             },
-            on: {
-              ON_CLICK_NAVIGATE_TO_FRAME_3: 'Frame_3',
-              MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY: '#Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY_AFTER_2000',
-            }
+            on:{
+              ON_CLICK_NAVIGATE_TO_FRAME_3:'Frame_3',
+              MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY:'#Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY_AFTER_2000',
+            },
           },
           Frame_2:{
-            type: 'final'
+            type:'final',
           },
           Frame_3:{
-            type: 'final'
+            type:'final',
           },
-        }
-      }"
+        },
+      }
+      ,"
     `,
     )
   })

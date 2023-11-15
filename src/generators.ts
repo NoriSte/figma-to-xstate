@@ -10,15 +10,15 @@ export interface GeneratorOptions {
 
 function createWriterUtils(writer: CodeBlockWriter) {
   return {
-    stateId(id: string) { writer.newLine().write('id:').space().quote().write(id).quote().write(',') },
-    initialState(name: string) { writer.newLine().write('initial:').space().quote().write(normalizeString(name)).quote().write(',') },
-    stateBlock(stateName: string, callback: () => void) { writer.newLine().write(stateName).write(':').inlineBlock(callback).write(',') },
-    states(callback: () => void) { writer.newLine().write('states:').block(callback).write(',') },
-    on(callback: () => void) { writer.newLine().write('on:').block(callback).write(',') },
+    stateId(id: string) { writer.write('id:').quote().write(id).quote().write(',').newLine() },
+    initialState(name: string) { writer.write('initial:').quote().write(normalizeString(name)).quote().write(',').newLine() },
+    stateBlock(stateName: string, callback: () => void) { writer.write(stateName).write(':').inlineBlock(callback).write(',').newLine() },
+    states(callback: () => void) { writer.write('states:').inlineBlock(callback).write(',').newLine() },
+    on(callback: () => void) { writer.write('on:').inlineBlock(callback).write(',').newLine() },
     stateMachineConfig(callback: () => void) { writer.block(callback).write(',') },
-    typeFinal() { writer.writeLine('type: \'final\'').write(',') },
-    idleState() { writer.write('idle:').inlineBlock().write(',').newLine().write(',') },
-    eventGoTo(eventName: string, destinationState: string) { writer.newLine().write(eventName).write(':').space().quote().write(destinationState).quote().write(',') },
+    writeFinal() { writer.write('type:').quote().write('final').quote().write(',') },
+    idleState() { writer.write('idle:').write('{},') },
+    eventGoTo(eventName: string, destinationState: string) { writer.write(eventName).write(':').quote().write(destinationState).quote().write(',').newLine() },
     eventAfter(eventName: string, destinationState: string, delay: number) {
       writer
         .newLine()
@@ -31,12 +31,12 @@ function createWriterUtils(writer: CodeBlockWriter) {
           2000: '#Page_1.Frame_2',
         }
         */
-          writer.write('after:').block(() => {
+          writer.write('after:').inlineBlock(() => {
           // --> 2000
-            writer.write(delay.toString()).write(':').space().quote()
+            writer.write(delay.toString()).write(':').quote()
             // --> '#Page_1.Frame_2',
             writer.write(destinationState).quote().write(',').newLine()
-          })
+          }).write(',')
         })
         .write(',')
     },
@@ -80,7 +80,7 @@ export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
           const noStateEvents = simplifiedFrame.reactionsData.length === 0
           if (noStateEvents) {
             // --> type: 'final'
-            w.typeFinal()
+            w.writeFinal()
             return
           }
 
@@ -119,14 +119,6 @@ export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
               // TEMP --------------------------------------
             })
           }
-
-          // TODO: narrow down to specific types
-          const navigatingNodesThatRequireSubStates = simplifiedFrame.reactionsData.filter(
-            node => doesNavigatingNodeRequireSubStates(node),
-          )
-          const navigatingNodesThatDoNotRequireSubStates = simplifiedFrame.reactionsData.filter(
-            node => !doesNavigatingNodeRequireSubStates(node),
-          )
 
           w.on(() => {
             // State events (without delay)
@@ -169,8 +161,4 @@ export function createXStateV4StateMachineOptions(params: GeneratorOptions) {
 
 export function createXStateV4Machine(params: GeneratorOptions) {
   createXStateV4StateMachineOptions(params)
-}
-
-function doesNavigatingNodeRequireSubStates(node: ReactionData) {
-  return 'delay' in node || node.navigationType === 'SCROLL_TO'
 }
