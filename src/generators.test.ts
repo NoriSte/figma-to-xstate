@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { type GeneratorOptions, createXStateV4StateMachineOptions } from './generators'
+import { type GeneratorOptions, generateXStateV4StateMachineOptions } from './generators'
 import { generateNewWriter } from './utils'
 
-describe('createXStateV4StateMachineOptions', () => {
+describe('generateXStateV4StateMachineOptions', () => {
   it('when passed with an empty list of frames, then throws an error', () => {
     const writer = generateNewWriter()
 
@@ -15,7 +15,7 @@ describe('createXStateV4StateMachineOptions', () => {
       },
     }
 
-    expect(() => createXStateV4StateMachineOptions(generatorOptions)).toThrowError(
+    expect(() => generateXStateV4StateMachineOptions(generatorOptions)).toThrowError(
       'The document contains no frames.',
     )
   })
@@ -37,7 +37,7 @@ describe('createXStateV4StateMachineOptions', () => {
       },
     }
 
-    createXStateV4StateMachineOptions(generatorOptions)
+    generateXStateV4StateMachineOptions(generatorOptions)
 
     expect(writer.toString()).toMatchInlineSnapshot(`
       "{
@@ -90,7 +90,7 @@ describe('createXStateV4StateMachineOptions', () => {
       },
     }
 
-    createXStateV4StateMachineOptions(generatorOptions)
+    generateXStateV4StateMachineOptions(generatorOptions)
 
     expect(writer.toString()).toMatchInlineSnapshot(
     `
@@ -148,7 +148,7 @@ describe('createXStateV4StateMachineOptions', () => {
       },
     }
 
-    createXStateV4StateMachineOptions(generatorOptions)
+    generateXStateV4StateMachineOptions(generatorOptions)
 
     expect(writer.toString()).toMatchInlineSnapshot(
     `
@@ -216,7 +216,7 @@ describe('createXStateV4StateMachineOptions', () => {
       },
     }
 
-    createXStateV4StateMachineOptions(generatorOptions)
+    generateXStateV4StateMachineOptions(generatorOptions)
 
     expect(writer.toString()).toMatchInlineSnapshot(
     `
@@ -252,4 +252,91 @@ describe('createXStateV4StateMachineOptions', () => {
     `,
     )
   })
+
+  it('when passed with the options generated from the "Simple scroll" Figma file, then use the writer to compose a the corresponding state machine', () => {
+    const writer = generateNewWriter()
+
+    const generatorOptions: GeneratorOptions = {
+      writer,
+      figmaAgnosticDescriptor: {
+        pageName: 'Page 1',
+        simplifiedFramesTree: [{
+          id: '1:2',
+          name: 'Frame 1',
+          reactionsData: [],
+          framesChildren: [{
+            id: '1:5',
+            name: 'Frame 2',
+            reactionsData: [{
+              node: { id: '17:6' },
+              triggerType: 'ON_CLICK',
+              navigationType: 'SCROLL_TO',
+              destinationNodeId: '17:31',
+              destinationNodeName: 'Anchor 2',
+              generatedName: 'scroll to anchor 2',
+            }, {
+              node: { id: '17:5' },
+              triggerType: 'ON_CLICK',
+              navigationType: 'SCROLL_TO',
+              destinationNodeId: '17:13',
+              destinationNodeName: 'Anchor 1',
+              generatedName: 'scroll to anchor 1',
+            }],
+            framesChildren: [],
+          }, {
+            id: '17:23',
+            name: 'Frame 3',
+            reactionsData: [{
+              node: { id: '17:25' },
+              triggerType: 'ON_CLICK',
+              navigationType: 'SCROLL_TO',
+              destinationNodeId: '17:55',
+              destinationNodeName: 'Anchor 3',
+              generatedName: 'scroll to anchor 2',
+            }],
+            framesChildren: [],
+          }, {
+            id: '17:50',
+            name: 'Frame 4',
+            reactionsData: [],
+            framesChildren: [],
+          }],
+        }],
+      },
+    }
+
+    generateXStateV4StateMachineOptions(generatorOptions)
+
+    expect(writer.toString()).toMatchInlineSnapshot(`
+      "{
+        id:'Page_1',
+        initial:'Frame_1',
+        states:{
+          Frame_1:{
+            id:'Frame_1',
+            initial:'idle',
+            states:{
+              idle:{},
+              Frame_2:{
+                on:{
+                },
+              },
+              Frame_3:{
+                on:{
+                },
+              },
+              Frame_4:{
+                type:'final',
+              },
+            },
+            on:{
+            },
+          },
+        },
+      }
+      ,"
+    `)
+  })
+  // TODO: test scroll to deeply nested anchors
+  // TODO: test click and delay to deeply nested anchors mixed with scroll (ahd with meaningful names in figma)
 })

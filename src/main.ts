@@ -1,6 +1,6 @@
 import { showUI } from '@create-figma-plugin/utilities'
 import type { FigmaAgnosticDescriptor } from './types'
-import { type GeneratorOptions, createXStateV4Machine } from './generators'
+import { type GeneratorOptions, generateXStateV4Machine } from './generators'
 import { traversePage } from './traverse'
 import { generateNewWriter } from './utils'
 
@@ -30,7 +30,7 @@ export default function main() {
 
   // --------------------------------------------------
   // GENERATE
-  createXStateV4Machine(generatorOptions)
+  generateXStateV4Machine(generatorOptions)
   // --------------------------------------------------
 
   const generatedXStateConfig = writer.toString()
