@@ -135,6 +135,9 @@ export function generateStates(params: StatesGeneratorOptions) {
 
           // Recursive states
           for (const simplifiedFrameChild of simplifiedFrame.framesChildren) {
+            if (simplifiedFrameChild.type !== 'FRAME')
+              continue
+
             generateStates({
               writer,
               simplifiedFrames: [simplifiedFrameChild],

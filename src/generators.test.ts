@@ -29,10 +29,10 @@ describe('generateXStateV4StateMachineOptions', () => {
       {
         pageName: 'Page 1',
         simplifiedFramesTree: [
-          { id: '1:2', name: 'Frame 1', reactionsData: [], framesChildren: [] },
-          { id: '1:3', name: 'Frame 2', reactionsData: [], framesChildren: [] },
-          { id: '1:4', name: 'Frame 3', reactionsData: [], framesChildren: [] },
-          { id: '1:5', name: 'Frame 4', reactionsData: [], framesChildren: [] },
+          { type: 'FRAME', id: '1:2', name: 'Frame 1', reactionsData: [], framesChildren: [] },
+          { type: 'FRAME', id: '1:3', name: 'Frame 2', reactionsData: [], framesChildren: [] },
+          { type: 'FRAME', id: '1:4', name: 'Frame 3', reactionsData: [], framesChildren: [] },
+          { type: 'FRAME', id: '1:5', name: 'Frame 4', reactionsData: [], framesChildren: [] },
         ],
       },
     }
@@ -70,10 +70,10 @@ describe('generateXStateV4StateMachineOptions', () => {
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
         simplifiedFramesTree: [{
+          type: 'FRAME',
           id: '1:2',
           name: 'Frame 1',
           reactionsData: [{
-            node: { id: '1:8' },
             triggerType: 'ON_CLICK',
             navigationType: 'NAVIGATE',
             destinationFrameId: '1:3',
@@ -82,6 +82,7 @@ describe('generateXStateV4StateMachineOptions', () => {
           }],
           framesChildren: [],
         }, {
+          type: 'FRAME',
           id: '1:3',
           name: 'Frame 2',
           reactionsData: [],
@@ -121,10 +122,10 @@ describe('generateXStateV4StateMachineOptions', () => {
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
         simplifiedFramesTree: [{
+          type: 'FRAME',
           id: '1:2',
           name: 'Frame 1',
           reactionsData: [{
-            node: { id: '1:8' },
             triggerType: 'ON_CLICK',
             navigationType: 'NAVIGATE',
             destinationFrameId: '1:3',
@@ -133,10 +134,10 @@ describe('generateXStateV4StateMachineOptions', () => {
           }],
           framesChildren: [],
         }, {
+          type: 'FRAME',
           id: '1:3',
           name: 'Frame 2',
           reactionsData: [{
-            node: { id: '1:12' },
             triggerType: 'ON_DRAG',
             navigationType: 'NAVIGATE',
             destinationFrameId: '1:2',
@@ -183,10 +184,10 @@ describe('generateXStateV4StateMachineOptions', () => {
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
         simplifiedFramesTree: [{
+          type: 'FRAME',
           id: '1:2',
           name: 'Frame 1',
           reactionsData: [{
-            node: { id: '1:8' },
             triggerType: 'MOUSE_UP',
             generatedName: 'Navigate to Frame 2 with delay',
             delay: 2000,
@@ -194,7 +195,6 @@ describe('generateXStateV4StateMachineOptions', () => {
             destinationFrameId: '1:3',
             destinationFrameName: 'Frame 2',
           }, {
-            node: { id: '207:11' },
             triggerType: 'ON_CLICK',
             navigationType: 'NAVIGATE',
             destinationFrameId: '207:8',
@@ -203,11 +203,13 @@ describe('generateXStateV4StateMachineOptions', () => {
           }],
           framesChildren: [],
         }, {
+          type: 'FRAME',
           id: '1:3',
           name: 'Frame 2',
           reactionsData: [],
           framesChildren: [],
         }, {
+          type: 'FRAME',
           id: '207:8',
           name: 'Frame 3',
           reactionsData: [],
@@ -260,49 +262,62 @@ describe('generateXStateV4StateMachineOptions', () => {
       writer,
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
-        simplifiedFramesTree: [{
-          id: '1:2',
-          name: 'Frame 1',
-          reactionsData: [],
-          framesChildren: [{
-            id: '1:5',
-            name: 'Frame 2',
-            reactionsData: [{
-              node: { id: '17:6' },
-              triggerType: 'ON_CLICK',
-              navigationType: 'SCROLL_TO',
-              destinationNodeId: '17:31',
-              destinationNodeName: 'Anchor 2',
-              generatedName: 'scroll to anchor 2',
-            }, {
-              node: { id: '17:5' },
-              triggerType: 'ON_CLICK',
-              navigationType: 'SCROLL_TO',
-              destinationNodeId: '17:13',
-              destinationNodeName: 'Anchor 1',
-              generatedName: 'scroll to anchor 1',
-            }],
-            framesChildren: [],
-          }, {
-            id: '17:23',
-            name: 'Frame 3',
-            reactionsData: [{
-              node: { id: '17:25' },
-              triggerType: 'ON_CLICK',
-              navigationType: 'SCROLL_TO',
-              destinationNodeId: '17:55',
-              destinationNodeName: 'Anchor 3',
-              generatedName: 'scroll to anchor 2',
-            }],
-            framesChildren: [],
-          }, {
-            id: '17:50',
-            name: 'Frame 4',
+        simplifiedFramesTree: [
+          {
+            type: 'FRAME',
+            id: '1:2',
+            name: 'Frame 1',
             reactionsData: [],
-            framesChildren: [],
-          }],
-        }],
-      },
+            framesChildren: [
+              {
+                type: 'FRAME',
+                id: '1:5',
+                name: 'Frame 2',
+                reactionsData: [
+                  {
+                    triggerType: 'ON_CLICK',
+                    navigationType: 'SCROLL_TO',
+                    destinationNodeId: '17:31',
+                    destinationNodeName: 'Anchor 2',
+                    generatedName: 'scroll to anchor 2',
+                  },
+                  {
+                    triggerType: 'ON_CLICK',
+                    navigationType: 'SCROLL_TO',
+                    destinationNodeId: '17:13',
+                    destinationNodeName: 'Anchor 1',
+                    generatedName: 'scroll to anchor 1',
+                  },
+                ],
+                framesChildren: [{ type: 'NODE', generatedName: 'Anchor 1' }],
+              },
+              {
+                type: 'FRAME',
+                id: '17:23',
+                name: 'Frame 3',
+                reactionsData: [
+                  {
+                    triggerType: 'ON_CLICK',
+                    navigationType: 'SCROLL_TO',
+                    destinationNodeId: '17:55',
+                    destinationNodeName: 'Anchor 3',
+                    generatedName: 'scroll to anchor 2',
+                  },
+                ],
+                framesChildren: [{ type: 'NODE', generatedName: 'Anchor 2' }],
+              },
+              {
+                type: 'FRAME',
+                id: '17:50',
+                name: 'Frame 4',
+                reactionsData: [],
+                framesChildren: [{ type: 'NODE', generatedName: 'Anchor 3' }],
+              },
+            ],
+          },
+        ],
+      }
+      ,
     }
 
     generateXStateV4StateMachineOptions(generatorOptions)

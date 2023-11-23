@@ -20,15 +20,14 @@ export interface FigmaAgnosticDescriptor {
 export type SimplifiedFrameTree = SimplifiedFrame[]
 
 export type SimplifiedFrame = Pick<FrameNode, 'id' | 'name'> & {
-  framesChildren: SimplifiedFrame[]
+  type: 'FRAME'
+  framesChildren: (SimplifiedFrame | SimplifiedNode)[]
   reactionsData: ReactionData[]
 }
 
 export type ReactionData = ReactionDataCommonProperties & ReactionDataTriggerProperties & ReactionDataNavigationProperties
 
 export interface ReactionDataCommonProperties {
-  node: SceneNode
-
   // The node name or the name of the first text element found inside
   generatedName: string
 }
@@ -56,6 +55,12 @@ type ReactionDataNavigationProperties = {
 }
 
 type MillisecondsGreaterThanZero = number
+
+export interface SimplifiedNode {
+  type: 'NODE'
+  // The node name or the name of the first text element found inside
+  generatedName: string
+}
 
 // --------------------------------------------------
 // GUARDS

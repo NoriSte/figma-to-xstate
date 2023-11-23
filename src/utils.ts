@@ -63,7 +63,6 @@ export function getOnClickReactionData(params: {
 
     if (reaction.action.navigation === 'NAVIGATE') {
       result.push({
-        node,
         triggerType: reaction.trigger.type,
         navigationType: reaction.action.navigation,
         destinationFrameId: reaction.action.destinationId,
@@ -73,7 +72,6 @@ export function getOnClickReactionData(params: {
     }
     if (reaction.action.navigation === 'SCROLL_TO') {
       result.push({
-        node,
         triggerType: reaction.trigger.type,
         navigationType: reaction.action.navigation,
         destinationNodeId: reaction.action.destinationId,
@@ -110,7 +108,6 @@ export function getOnDragReactionData(params: {
 
     if (reaction.action.navigation === 'NAVIGATE') {
       result.push({
-        node,
         triggerType: reaction.trigger.type,
         navigationType: reaction.action.navigation,
         destinationFrameId: reaction.action.destinationId,
@@ -120,7 +117,6 @@ export function getOnDragReactionData(params: {
     }
     if (reaction.action.navigation === 'SCROLL_TO') {
       result.push({
-        node,
         triggerType: reaction.trigger.type,
         navigationType: reaction.action.navigation,
         destinationNodeId: reaction.action.destinationId,
@@ -164,7 +160,6 @@ export function getOnMouseEventReactionData(params: {
       continue
 
     const navigationNodeCommonProperties: ReactionDataCommonProperties & ReactionDataTriggerProperties = {
-      node,
       triggerType: reaction.trigger.type,
       generatedName: generateNodeName(node),
     }

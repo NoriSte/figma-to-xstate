@@ -1,5 +1,5 @@
 import { isFrame } from './types'
-import type { SimplifiedFrame, SimplifiedFrameTree } from './types'
+import type { SimplifiedFrame, SimplifiedFrameTree, SimplifiedNode } from './types'
 import {
   findParentFrame,
   generateNodeName,
@@ -20,7 +20,7 @@ export function traversePage() {
   // Loop optimized to traverse the full document only once
   figma.currentPage.findAll((node) => {
     if (isFrame(node)) {
-      simplifiedFramesById[node.id] ??= { id: node.id, name: node.name, reactionsData: [], framesChildren: [] }
+      simplifiedFramesById[node.id] ??= { type: 'FRAME', id: node.id, name: node.name, reactionsData: [], framesChildren: [] }
       const simplifiedFrame = simplifiedFramesById[node.id]
       assertIsDefined(simplifiedFrame)
 
@@ -62,31 +62,23 @@ export function traversePage() {
 
       // Add the SCROLL_TO targets as children
       for (const reactionData of reactionsData) {
-        console.log(reactionData.navigationType)
         if (reactionData.navigationType === 'SCROLL_TO') {
           const node = figma.getNodeById(reactionData.destinationNodeId)
-          console.log(node)
           assertIsDefined(node)
 
-          console.log(1)
           if (!(node.type === 'FRAME')) {
-            console.log(2)
             if (!simplifiedFramesById[node.id]) {
-              console.log(3)
               const parentFrameId = findParentFrame(node.parent)?.id
               assertIsString(parentFrameId)
 
               const frameNode = figma.getNodeById(parentFrameId)
               assertIsDefined(frameNode)
 
-              simplifiedFramesById[frameNode.id] ??= { id: parentFrameId, name: frameNode.name, reactionsData: [], framesChildren: [] }
+              simplifiedFramesById[frameNode.id] ??= { type: 'FRAME', id: parentFrameId, name: frameNode.name, reactionsData: [], framesChildren: [] }
               const parentFrame = simplifiedFramesById[parentFrameId]
               assertIsDefined(parentFrame)
 
-              console.log(4)
-
-              // TODO: this is NOT a frame!!! it's a generic child!
-              const simplifiedChild: SimplifiedFrame = { id: node.id, name: generateNodeName(node), reactionsData: [], framesChildren: [] }
+              const simplifiedChild: SimplifiedNode = { type: 'NODE', generatedName: generateNodeName(node) }
               parentFrame.framesChildren.push(simplifiedChild)
             }
           }
