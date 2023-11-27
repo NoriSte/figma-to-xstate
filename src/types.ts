@@ -19,9 +19,11 @@ export interface FigmaAgnosticDescriptor {
 
 export type SimplifiedFrameTree = SimplifiedFrame[]
 
+export type Child = SimplifiedFrame | SimplifiedNode
+
 export type SimplifiedFrame = Pick<FrameNode, 'id' | 'name'> & {
   type: 'FRAME'
-  framesChildren: (SimplifiedFrame | SimplifiedNode)[]
+  framesChildren: Child[]
   reactionsData: ReactionData[]
 }
 
@@ -57,9 +59,11 @@ type ReactionDataNavigationProperties = {
 type MillisecondsGreaterThanZero = number
 
 export interface SimplifiedNode {
+  id: string
   type: 'NODE'
   // The node name or the name of the first text element found inside
-  generatedName: string
+  // TODO: is it a generated name or a standard one?
+  name: string
 }
 
 // --------------------------------------------------

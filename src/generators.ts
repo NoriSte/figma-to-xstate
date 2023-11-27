@@ -1,6 +1,6 @@
 import type CodeBlockWriter from 'code-block-writer'
 
-import { normalizeString } from './utils'
+import { generateMachinePath, normalizeString } from './utils'
 import type { FigmaAgnosticDescriptor, SimplifiedFrame, SimplifiedFrameTree } from './types'
 
 export interface GeneratorOptions {
@@ -54,7 +54,14 @@ export function generateXStateV4StateMachineOptions(params: GeneratorOptions) {
     w.stateId(machineId)
     w.initialState(firstFrame.name)
     w.states(() => {
-      generateStates({ writer, simplifiedFrames: simplifiedFramesTree, statesPath: machineId, writeUtils: w })
+      generateStates({
+        writer,
+        tempNameWholesimplifiedFrames: simplifiedFramesTree,
+        simplifiedFrames: simplifiedFramesTree,
+        statesPath: machineId,
+        writeUtils: w,
+        tempMachineId: machineId,
+      })
     })
   })
 
@@ -63,6 +70,8 @@ export function generateXStateV4StateMachineOptions(params: GeneratorOptions) {
 
 interface StatesGeneratorOptions {
   readonly writer: CodeBlockWriter
+  readonly tempNameWholesimplifiedFrames: SimplifiedFrame[]
+  readonly tempMachineId: string
   readonly simplifiedFrames: SimplifiedFrame[]
   readonly statesPath: string
   readonly writeUtils: ReturnType<typeof createWriterUtils>
@@ -73,6 +82,8 @@ export function generateStates(params: StatesGeneratorOptions) {
     writer,
     statesPath,
     simplifiedFrames,
+    tempMachineId,
+    tempNameWholesimplifiedFrames,
     writeUtils: w,
   } = params
 
@@ -133,6 +144,14 @@ export function generateStates(params: StatesGeneratorOptions) {
             }
           }
 
+          // Simple nodes that are reaction targets
+          for (const simplifiedNodeChild of simplifiedFrame.framesChildren) {
+            if (simplifiedNodeChild.type !== 'NODE')
+              continue
+
+            writer.write(normalizeString(simplifiedNodeChild.name)).write(':').write('{}').write(',').newLine()
+          }
+
           // Recursive states
           for (const simplifiedFrameChild of simplifiedFrame.framesChildren) {
             if (simplifiedFrameChild.type !== 'FRAME')
@@ -140,9 +159,11 @@ export function generateStates(params: StatesGeneratorOptions) {
 
             generateStates({
               writer,
+              tempNameWholesimplifiedFrames,
               simplifiedFrames: [simplifiedFrameChild],
               statesPath: `${statesPath}.${normalizeString(simplifiedFrame.name)}`,
               writeUtils: w,
+              tempMachineId,
             })
           }
         })
@@ -187,8 +208,19 @@ export function generateStates(params: StatesGeneratorOptions) {
           // ex. ???????
           const eventName = normalizeString(`${reactionData.triggerType}_${reactionData.generatedName.toUpperCase()}_${reactionData.navigationType}`)
 
+          console.log('---')
+          const statePath = generateMachinePath({
+            simplifiedFrames: tempNameWholesimplifiedFrames,
+            elementId: reactionData.destinationNodeId,
+            startingPath: tempMachineId,
+          })
+
+          if (!statePath.found)
+            throw new Error(`Can't find the state path for ${reactionData.destinationNodeId}`)
+
+          console.log({ PATH: statePath.path })
           // ex. ???
-          const stateName = `#${statesPath}.${normalizeString(`${simplifiedFrame.name}.${reactionData.destinationNodeName.toUpperCase()}`)}`
+          const stateName = `#${statePath.path}`
 
           w.eventGoTo(eventName, stateName)
         }

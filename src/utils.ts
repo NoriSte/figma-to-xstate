@@ -1,6 +1,6 @@
 import CodeBlockWriter from 'code-block-writer'
 import { isGroup } from './types'
-import type { ReactionData, ReactionDataCommonProperties, ReactionDataTriggerProperties } from './types'
+import type { Child, ReactionData, ReactionDataCommonProperties, ReactionDataTriggerProperties, SimplifiedFrameTree } from './types'
 
 export function generateNewWriter() {
   return new CodeBlockWriter({
@@ -205,4 +205,33 @@ export function findParentFrame(node: ParentNode) {
     return node
 
   return findParentFrame(node.parent)
+}
+
+export function generateMachinePath(params: { startingPath?: string; simplifiedFrames: Child[]; elementId: string }): {
+  found: false
+
+} | {
+  found: true
+  path: string
+} {
+  const { startingPath, simplifiedFrames, elementId } = params
+
+  for (const simplifiedFrame of simplifiedFrames) {
+    if (simplifiedFrame.id === elementId) {
+      return {
+        found: true,
+        path: `${startingPath}.${normalizeString(simplifiedFrame.name)}`,
+      }
+    }
+
+    if (simplifiedFrame.type === 'FRAME' && simplifiedFrame.framesChildren.length) {
+      const result = generateMachinePath({ startingPath: `${startingPath}.${normalizeString(simplifiedFrame.name)}`, simplifiedFrames: simplifiedFrame.framesChildren, elementId })
+      if (result.found)
+        return result
+    }
+  }
+
+  return {
+    found: false,
+  }
 }

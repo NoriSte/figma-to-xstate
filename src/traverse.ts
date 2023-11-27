@@ -78,7 +78,7 @@ export function traversePage() {
               const parentFrame = simplifiedFramesById[parentFrameId]
               assertIsDefined(parentFrame)
 
-              const simplifiedChild: SimplifiedNode = { type: 'NODE', generatedName: generateNodeName(node) }
+              const simplifiedChild: SimplifiedNode = { type: 'NODE', id: node.id, name: generateNodeName(node) }
               parentFrame.framesChildren.push(simplifiedChild)
             }
           }
