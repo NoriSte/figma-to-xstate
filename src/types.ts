@@ -22,7 +22,6 @@ export type SimplifiedFrameTree = SimplifiedFrame[]
 export type Child = SimplifiedFrame | SimplifiedNode
 
 export type SimplifiedFrame = Pick<FrameNode, 'id' | 'name'> & {
-  type: 'FRAME'
   reactionsData: ReactionData[]
 }
 

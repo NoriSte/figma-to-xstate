@@ -1,6 +1,6 @@
 import CodeBlockWriter from 'code-block-writer'
 import { isGroup } from './types'
-import type { Child, ReactionData, ReactionDataCommonProperties, ReactionDataTriggerProperties } from './types'
+import type { ReactionData, ReactionDataCommonProperties, ReactionDataTriggerProperties } from './types'
 
 export function generateNewWriter() {
   return new CodeBlockWriter({
