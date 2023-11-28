@@ -207,6 +207,24 @@ export function findParentFrame(node: ParentNode) {
   return findParentFrame(node.parent)
 }
 
+export function findParentRootFrame(node: BaseNode) {
+  const parent = node.parent
+
+  assertIsDefined(parent, `Parentless nodes are not expected (node id: ${node.id})`)
+
+  if (parent.type === 'FRAME' && isRootFrame(parent))
+    return parent
+
+  return findParentRootFrame(parent)
+}
+
+export function isRootFrame(node: FrameNode) {
+  if (node.parent?.type === 'FRAME')
+    return false
+
+  return true
+}
+
 export function generateMachinePath(params: { startingPath?: string; simplifiedFrames: Child[]; elementId: string }): {
   found: false
 
@@ -234,4 +252,13 @@ export function generateMachinePath(params: { startingPath?: string; simplifiedF
   return {
     found: false,
   }
+}
+
+export function assertIsDefined<T>(value: T, errorMessage: string): asserts value is NonNullable<T> {
+  if (value === undefined || value === null)
+    throw new Error(`${value} is not defined (${errorMessage})`)
+}
+export function assertIsString(value: unknown, errorMessage: string): asserts value is string {
+  if (typeof value !== 'string')
+    throw new Error(`${value} is not a string ${errorMessage}`)
 }
