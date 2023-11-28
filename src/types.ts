@@ -13,13 +13,11 @@ export interface FigmaAgnosticDescriptor {
    * interactive nodes that belong to the frames. Compared to a standard tree, there are multiple
    * root frames.
    */
-  readonly simplifiedFramesTree: SimplifiedFrameTree
+  readonly simplifiedFrames: SimplifiedFrames
 
 }
 
-export type SimplifiedFrameTree = SimplifiedFrame[]
-
-export type Child = SimplifiedFrame | SimplifiedNode
+export type SimplifiedFrames = SimplifiedFrame[]
 
 export type SimplifiedFrame = Pick<FrameNode, 'id' | 'name'> & {
   reactionsData: ReactionData[]
@@ -55,14 +53,6 @@ type ReactionDataNavigationProperties = {
 }
 
 type MillisecondsGreaterThanZero = number
-
-export interface SimplifiedNode {
-  id: string
-  type: 'NODE'
-  // The node name or the name of the first text element found inside
-  // TODO: is it a generated name or a standard one?
-  name: string
-}
 
 // --------------------------------------------------
 // GUARDS

@@ -1,5 +1,5 @@
 import { isFrame } from './types'
-import type { SimplifiedFrame, SimplifiedFrameTree } from './types'
+import type { SimplifiedFrame, SimplifiedFrames } from './types'
 import {
   assertIsDefined,
   findParentRootFrame,
@@ -10,7 +10,7 @@ import {
 } from './utils'
 
 export function traversePage() {
-  const simplifiedFramesTree: SimplifiedFrameTree = []
+  const simplifiedFrames: SimplifiedFrames = []
   const simplifiedFramesById: Record<string, SimplifiedFrame> = {}
 
   const { skipInvisibleInstanceChildren: skipInvisibleInstanceChildrenBackup } = figma
@@ -25,7 +25,7 @@ export function traversePage() {
       const simplifiedFrame = simplifiedFramesById[node.id]
       assertIsDefined(simplifiedFrame, `Unexisting frame (node id ${node.id})`)
 
-      simplifiedFramesTree.push(simplifiedFrame)
+      simplifiedFrames.push(simplifiedFrame)
     }
 
     const onDragReactionData = getOnDragReactionData({ node })
@@ -59,5 +59,5 @@ export function traversePage() {
   // Restore the original value
   figma.skipInvisibleInstanceChildren = skipInvisibleInstanceChildrenBackup
 
-  return { simplifiedFramesTree }
+  return { simplifiedFrames }
 }

@@ -10,16 +10,20 @@ export interface GeneratorOptions {
 
 function createWriterUtils(writer: CodeBlockWriter) {
   return {
+    stateMachineConfig(callback: () => void) { writer.block(callback).write(',') },
+
+    idleState() { writer.write('idle:').write('{},').newLine() },
+    typeFinal() { writer.write('type:').quote().write('final').quote().write(',') },
     stateId(id: string) { writer.write('id:').quote().write(id).quote().write(',').newLine() },
     initialState(name: string) { writer.write('initial:').quote().write(normalizeString(name)).quote().write(',').newLine() },
+
+    statesBlock(callback: () => void) { writer.write('states:').inlineBlock(callback).write(',').newLine() },
     stateBlock(stateName: string, callback: () => void) { writer.write(stateName).write(':').inlineBlock(callback).write(',').newLine() },
-    states(callback: () => void) { writer.write('states:').inlineBlock(callback).write(',').newLine() },
-    on(callback: () => void) { writer.write('on:').inlineBlock(callback).write(',').newLine() },
-    stateMachineConfig(callback: () => void) { writer.block(callback).write(',') },
-    writeFinal() { writer.write('type:').quote().write('final').quote().write(',') },
-    idleState() { writer.write('idle:').write('{},').newLine() },
+
+    eventsBlock(callback: () => void) { writer.write('on:').inlineBlock(callback).write(',').newLine() },
     eventGoTo(eventName: string, destinationState: string) { writer.write(eventName).write(':').quote().write(destinationState).quote().write(',').newLine() },
-    eventAfter(destinationState: string, delay: number) {
+
+    eventAfterDelay(destinationState: string, delay: number) {
       /*
           -->
           after: {
@@ -39,12 +43,12 @@ function createWriterUtils(writer: CodeBlockWriter) {
 export function generateXStateV4StateMachineOptions(params: GeneratorOptions) {
   const {
     writer,
-    figmaAgnosticDescriptor: { simplifiedFramesTree, pageName },
+    figmaAgnosticDescriptor: { simplifiedFrames, pageName },
   } = params
 
   const w = createWriterUtils(writer)
 
-  const firstFrame = simplifiedFramesTree[0]
+  const firstFrame = simplifiedFrames[0]
   if (!firstFrame)
     throw new Error('The document contains no frames.')
 
@@ -53,153 +57,116 @@ export function generateXStateV4StateMachineOptions(params: GeneratorOptions) {
   w.stateMachineConfig(() => {
     w.stateId(machineId)
     w.initialState(firstFrame.name)
-    w.states(() => {
-      generateStates({
-        writer,
+    w.statesBlock(() => {
+      for (const simplifiedFrame of simplifiedFrames) {
+        // TODO: Support frames with same name
+        const frameStateId = normalizeString(simplifiedFrame.name)
 
-        simplifiedFrames: simplifiedFramesTree,
-        statesPath: machineId,
-        writeUtils: w,
+        // ex. Frame_1
+        w.stateBlock(frameStateId, () => {
+          // State body
+          const containStateEvents = simplifiedFrame.reactionsData.length > 0
+          if (!containStateEvents) {
+            // --> type: 'final'
+            w.typeFinal()
+            return
+          }
 
-      })
-    })
-  })
+          const containDelayedReactions = simplifiedFrame.reactionsData.some(reactionData => 'delay' in reactionData)
+          const containOnScrollReactions = simplifiedFrame.reactionsData.some(reactionData => reactionData.navigationType === 'SCROLL_TO')
+          const requireSubStates = containDelayedReactions || containOnScrollReactions
 
-  return writer
-}
+          if (requireSubStates)
+            // TODO: make sure the id is unique
+            w.stateId(frameStateId)
 
-interface StatesGeneratorOptions {
-  readonly writer: CodeBlockWriter
-  readonly simplifiedFrames: SimplifiedFrame[]
-  readonly statesPath: string
-  readonly writeUtils: ReturnType<typeof createWriterUtils>
-}
+          if (requireSubStates) {
+            w.initialState('idle')
+            w.statesBlock(() => {
+              // Idle state
+              // --> idle:{},
+              w.idleState()
 
-export function generateStates(params: StatesGeneratorOptions) {
-  const {
-    writer,
-    statesPath,
-    simplifiedFrames,
+              // Delayed navigation states
+              for (const reactionData of simplifiedFrame.reactionsData) {
+                if (!('delay' in reactionData) || typeof reactionData.delay === 'undefined' || reactionData.navigationType !== 'NAVIGATE')
+                  continue
 
-    writeUtils: w,
-  } = params
+                // ex. MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY
+                const eventName = normalizeString(`${reactionData.triggerType}_${reactionData.generatedName.toUpperCase()}`)
 
-  for (const simplifiedFrame of simplifiedFrames) {
-    // TODO: Support fragments with same name
-    // ex. Frame_1
-    const frameStateId = normalizeString(simplifiedFrame.name)
+                const delay = reactionData.delay
+                // ex. #Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000
+                const stateName = `${eventName}_AFTER_${delay}`
 
-    // ex. Frame_1
-    w.stateBlock(frameStateId, () => {
-      // State body
-      const containStateEvents = simplifiedFrame.reactionsData.length
+                // ex. #Page_1.Frame_2
+                const destinationPath = `#${machineId}.${normalizeString(reactionData.destinationFrameName)}`
 
-      if (!containStateEvents) {
-        // --> type: 'final'
-        w.writeFinal()
-        return
-      }
+                w.stateBlock(stateName, () => {
+                  w.eventAfterDelay(destinationPath, delay)
+                })
+              }
 
-      const containDelayedReactions = containStateEvents && simplifiedFrame.reactionsData.some(reactionData => 'delay' in reactionData)
-      const containOnScrollReactions = containStateEvents && simplifiedFrame.reactionsData.some(reactionData => reactionData.navigationType === 'SCROLL_TO')
-      const requireSubStates = containDelayedReactions || containOnScrollReactions
+              // Scrollable states
+              for (const reactionData of simplifiedFrame.reactionsData) {
+                if (reactionData.navigationType !== 'SCROLL_TO')
+                  continue
 
-      const needUniqueId = requireSubStates
+                w.stateBlock(normalizeString(reactionData.destinationNodeName), () => {})
+              }
+            })
+          }
 
-      if (needUniqueId)
-        // TODO: make sure the id is unique
-        w.stateId(frameStateId)
+          w.eventsBlock(() => {
+            // State events (without delay)
+            for (const reactionData of simplifiedFrame.reactionsData) {
+              if (!('destinationFrameId' in reactionData))
+                continue
+              if (('delay' in reactionData))
+                continue
 
-      //   // --> initial: 'idle',
-      if (requireSubStates) {
-        w.initialState('idle')
-        w.states(() => {
-          // Idle state
-          // --> idle:{},
-          w.idleState()
-
-          // Delayed navigation states
-          for (const reactionData of simplifiedFrame.reactionsData) {
-            if (!('delay' in reactionData))
-              continue
-            if (typeof reactionData.delay === 'undefined')
-              continue
-
-            if (reactionData.navigationType === 'NAVIGATE') {
-            // ex. MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY
+              // ex. ON_CLICK_NAVIGATE_TO_FRAME_3
               const eventName = normalizeString(`${reactionData.triggerType}_${reactionData.generatedName.toUpperCase()}`)
 
-              const delay = reactionData.delay
-              // ex. #Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000
-              const stateName = `${eventName}_AFTER_${delay}`
-
-              // ex. #Page_1.Frame_2
-              const destinationPath = `#${statesPath}.${normalizeString(reactionData.destinationFrameName)}`
-
-              w.stateBlock(stateName, () => {
-                w.eventAfter(destinationPath, delay)
-              })
+              w.eventGoTo(eventName, normalizeString(reactionData.destinationFrameName))
             }
-          }
 
-          // Scrollable states
-          for (const reactionData of simplifiedFrame.reactionsData) {
-            if (reactionData.navigationType !== 'SCROLL_TO')
-              continue
+            // State events (with delay)
+            for (const reactionData of simplifiedFrame.reactionsData) {
+              if (!('delay' in reactionData))
+                continue
 
-            w.stateBlock(normalizeString(reactionData.destinationNodeName), () => {})
-          }
+              // ex. MOUSE_UP_NAVIGATE_TO_FRAME_2
+              const eventName = normalizeString(`${reactionData.triggerType}_${reactionData.generatedName.toUpperCase()}`)
+              // ex. MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000
+              const destinationStateName = `${eventName}_AFTER_${reactionData.delay}`
+
+              // ex. #Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000
+              const fullDestination = `#${frameStateId}.${destinationStateName}`
+
+              // --> MOUSE_UP_NAVIGATE_TO_FRAME_2: '#Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000',
+              w.eventGoTo(eventName, fullDestination)
+            }
+
+            // Scrollable states
+            for (const reactionData of simplifiedFrame.reactionsData) {
+              if (reactionData.navigationType !== 'SCROLL_TO')
+                continue
+
+              // ex. ???????
+              const eventName = normalizeString(`${reactionData.triggerType}_${reactionData.generatedName.toUpperCase()}_${reactionData.navigationType}`)
+
+              // TODO: convert statesPath back to pageId
+              // TODO: support destinations with same name
+              const statePath = `#${machineId}.${frameStateId}.${normalizeString(reactionData.destinationNodeName)}`
+
+              w.eventGoTo(eventName, statePath)
+            }
+          })
         })
       }
-
-      w.on(() => {
-        // State events (without delay)
-        for (const reactionData of simplifiedFrame.reactionsData) {
-          if (!('destinationFrameId' in reactionData))
-            continue
-          if (('delay' in reactionData))
-            continue
-
-          // ex. ON_CLICK_NAVIGATE_TO_FRAME_3
-          const eventName = normalizeString(`${reactionData.triggerType}_${reactionData.generatedName.toUpperCase()}`)
-
-          w.eventGoTo(eventName, normalizeString(reactionData.destinationFrameName))
-        }
-
-        // State events (with delay)
-        for (const reactionData of simplifiedFrame.reactionsData) {
-          if (!('delay' in reactionData))
-            continue
-
-          // ex. MOUSE_UP_NAVIGATE_TO_FRAME_2
-          const eventName = normalizeString(`${reactionData.triggerType}_${reactionData.generatedName.toUpperCase()}`)
-          // ex. MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000
-          const destinationStateName = `${eventName}_AFTER_${reactionData.delay}`
-
-          // ex. #Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000
-          const fullDestination = `#${frameStateId}.${destinationStateName}`
-
-          // --> MOUSE_UP_NAVIGATE_TO_FRAME_2: '#Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000',
-          w.eventGoTo(eventName, fullDestination)
-        }
-
-        // Scrollable states
-        for (const reactionData of simplifiedFrame.reactionsData) {
-          if (reactionData.navigationType !== 'SCROLL_TO')
-            continue
-
-          // ex. ???????
-          const eventName = normalizeString(`${reactionData.triggerType}_${reactionData.generatedName.toUpperCase()}_${reactionData.navigationType}`)
-
-          // TODO: convert statesPath back to pageId
-          // TODO: support destinations with same name
-          const statePath = `#${statesPath}.${frameStateId}.${normalizeString(reactionData.destinationNodeName)}`
-
-          w.eventGoTo(eventName, statePath)
-        }
-      })
     })
-  }
+  })
 
   return writer
 }

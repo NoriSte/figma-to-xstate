@@ -10,7 +10,7 @@ describe('generateXStateV4StateMachineOptions', () => {
       writer,
       figmaAgnosticDescriptor: {
         pageName: 'unitTestPage',
-        simplifiedFramesTree: [],
+        simplifiedFrames: [],
 
       },
     }
@@ -28,7 +28,7 @@ describe('generateXStateV4StateMachineOptions', () => {
       figmaAgnosticDescriptor:
       {
         pageName: 'Page 1',
-        simplifiedFramesTree: [
+        simplifiedFrames: [
           { type: 'FRAME', id: '1:2', name: 'Frame 1', reactionsData: [] },
           { type: 'FRAME', id: '1:3', name: 'Frame 2', reactionsData: [] },
           { type: 'FRAME', id: '1:4', name: 'Frame 3', reactionsData: [] },
@@ -69,7 +69,7 @@ describe('generateXStateV4StateMachineOptions', () => {
       writer,
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
-        simplifiedFramesTree: [{
+        simplifiedFrames: [{
           type: 'FRAME',
           id: '1:2',
           name: 'Frame 1',
@@ -121,7 +121,7 @@ describe('generateXStateV4StateMachineOptions', () => {
       writer,
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
-        simplifiedFramesTree: [{
+        simplifiedFrames: [{
           type: 'FRAME',
           id: '1:2',
           name: 'Frame 1',
@@ -183,7 +183,7 @@ describe('generateXStateV4StateMachineOptions', () => {
       writer,
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
-        simplifiedFramesTree: [{
+        simplifiedFrames: [{
           type: 'FRAME',
           id: '1:2',
           name: 'Frame 1',
@@ -262,7 +262,7 @@ describe('generateXStateV4StateMachineOptions', () => {
       writer,
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
-        simplifiedFramesTree: [
+        simplifiedFrames: [
           {
             type: 'FRAME',
             id: '1:2',

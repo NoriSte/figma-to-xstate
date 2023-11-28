@@ -7,13 +7,13 @@ import { generateNewWriter } from './utils'
 export default function main() {
   // --------------------------------------------------
   // TRAVERSE
-  const { simplifiedFramesTree } = traversePage()
+  const { simplifiedFrames } = traversePage()
 
   // --------------------------------------------------
 
   const figmaAgnosticDescriptor: FigmaAgnosticDescriptor = {
     pageName: figma.currentPage.name,
-    simplifiedFramesTree,
+    simplifiedFrames,
 
   }
 
