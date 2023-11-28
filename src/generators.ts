@@ -96,15 +96,16 @@ export function generateStates(params: StatesGeneratorOptions) {
     w.stateBlock(frameStateId, () => {
       // State body
       const containStateEvents = simplifiedFrame.reactionsData.length
-      const containFramesChildren = simplifiedFrame.framesChildren.length
-      if (!containStateEvents && !containFramesChildren) {
+
+      if (!containStateEvents) {
         // --> type: 'final'
         w.writeFinal()
         return
       }
 
       const containDelayedReactions = containStateEvents && simplifiedFrame.reactionsData.some(reactionData => 'delay' in reactionData)
-      const requireSubStates = containDelayedReactions || containFramesChildren
+      const containOnScrollReactions = containStateEvents && simplifiedFrame.reactionsData.some(reactionData => reactionData.navigationType === 'SCROLL_TO')
+      const requireSubStates = containDelayedReactions || containOnScrollReactions
 
       const needUniqueId = requireSubStates
 
@@ -152,19 +153,12 @@ export function generateStates(params: StatesGeneratorOptions) {
             writer.write(normalizeString(simplifiedNodeChild.name)).write(':').write('{}').write(',').newLine()
           }
 
-          // Recursive states
-          for (const simplifiedFrameChild of simplifiedFrame.framesChildren) {
-            if (simplifiedFrameChild.type !== 'FRAME')
+          // Scrollable states
+          for (const reactionData of simplifiedFrame.reactionsData) {
+            if (reactionData.navigationType !== 'SCROLL_TO')
               continue
 
-            generateStates({
-              writer,
-              tempNameWholesimplifiedFrames,
-              simplifiedFrames: [simplifiedFrameChild],
-              statesPath: `${statesPath}.${normalizeString(simplifiedFrame.name)}`,
-              writeUtils: w,
-              tempMachineId,
-            })
+            w.stateBlock(normalizeString(reactionData.destinationNodeName), () => {})
           }
         })
       }
@@ -208,21 +202,11 @@ export function generateStates(params: StatesGeneratorOptions) {
           // ex. ???????
           const eventName = normalizeString(`${reactionData.triggerType}_${reactionData.generatedName.toUpperCase()}_${reactionData.navigationType}`)
 
-          console.log('---')
-          const statePath = generateMachinePath({
-            simplifiedFrames: tempNameWholesimplifiedFrames,
-            elementId: reactionData.destinationNodeId,
-            startingPath: tempMachineId,
-          })
+          // TODO: convert statesPath back to pageId
+          // TODO: support destinations with same name
+          const statePath = `#${statesPath}.${frameStateId}.${normalizeString(reactionData.destinationNodeName)}`
 
-          if (!statePath.found)
-            throw new Error(`Can't find the state path for ${reactionData.destinationNodeId}`)
-
-          console.log({ PATH: statePath.path })
-          // ex. ???
-          const stateName = `#${statePath.path}`
-
-          w.eventGoTo(eventName, stateName)
+          w.eventGoTo(eventName, statePath)
         }
       })
     })

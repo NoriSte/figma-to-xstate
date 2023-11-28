@@ -267,53 +267,30 @@ describe('generateXStateV4StateMachineOptions', () => {
             type: 'FRAME',
             id: '1:2',
             name: 'Frame 1',
-            reactionsData: [],
-            framesChildren: [
+            reactionsData: [
               {
-                type: 'FRAME',
-                id: '1:5',
-                name: 'Frame 2',
-                reactionsData: [
-                  {
-                    triggerType: 'ON_CLICK',
-                    navigationType: 'SCROLL_TO',
-                    destinationNodeId: '17:31',
-                    destinationNodeName: 'Anchor 2',
-                    generatedName: 'scroll to anchor 2',
-                  },
-                  {
-                    triggerType: 'ON_CLICK',
-                    navigationType: 'SCROLL_TO',
-                    destinationNodeId: '17:13',
-                    destinationNodeName: 'Anchor 1',
-                    generatedName: 'scroll to anchor 1',
-                  },
-                ],
-                framesChildren: [{ type: 'NODE', id: '17:13', name: 'Anchor 1' }],
+                triggerType: 'ON_CLICK',
+                navigationType: 'SCROLL_TO',
+                destinationNodeId: '17:31',
+                destinationNodeName: 'Anchor 2',
+                generatedName: 'scroll to anchor 2',
               },
               {
-                type: 'FRAME',
-                id: '17:23',
-                name: 'Frame 3',
-                reactionsData: [
-                  {
-                    triggerType: 'ON_CLICK',
-                    navigationType: 'SCROLL_TO',
-                    destinationNodeId: '17:55',
-                    destinationNodeName: 'Anchor 3',
-                    generatedName: 'scroll to anchor 2',
-                  },
-                ],
-                framesChildren: [{ type: 'NODE', id: '17:31', name: 'Anchor 2' }],
+                triggerType: 'ON_CLICK',
+                navigationType: 'SCROLL_TO',
+                destinationNodeId: '17:13',
+                destinationNodeName: 'Anchor 1',
+                generatedName: 'scroll to anchor 1',
               },
               {
-                type: 'FRAME',
-                id: '17:50',
-                name: 'Frame 4',
-                reactionsData: [],
-                framesChildren: [{ type: 'NODE', id: '17:55', name: 'Anchor 3' }],
+                triggerType: 'ON_CLICK',
+                navigationType: 'SCROLL_TO',
+                destinationNodeId: '17:55',
+                destinationNodeName: 'Anchor 3',
+                generatedName: 'scroll to anchor 3',
               },
             ],
+            framesChildren: [],
           },
         ],
       }
@@ -332,19 +309,17 @@ describe('generateXStateV4StateMachineOptions', () => {
             initial:'idle',
             states:{
               idle:{},
-              Frame_2:{
-                on:{
-                },
+              Anchor_2:{
               },
-              Frame_3:{
-                on:{
-                },
+              Anchor_1:{
               },
-              Frame_4:{
-                type:'final',
+              Anchor_3:{
               },
             },
             on:{
+              ON_CLICK_SCROLL_TO_ANCHOR_2_SCROLL_TO:'#Page_1.Frame_1.Anchor_2',
+              ON_CLICK_SCROLL_TO_ANCHOR_1_SCROLL_TO:'#Page_1.Frame_1.Anchor_1',
+              ON_CLICK_SCROLL_TO_ANCHOR_3_SCROLL_TO:'#Page_1.Frame_1.Anchor_3',
             },
           },
         },
