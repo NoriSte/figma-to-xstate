@@ -1,11 +1,8 @@
 import { isFrame } from './types'
-import type { SimplifiedFrame, SimplifiedFrameTree, SimplifiedNode } from './types'
+import type { SimplifiedFrame, SimplifiedFrameTree } from './types'
 import {
   assertIsDefined,
-  assertIsString,
-  findParentFrame,
   findParentRootFrame,
-  generateNodeName,
   getOnClickReactionData,
   getOnDragReactionData,
   getOnMouseEventReactionData,
