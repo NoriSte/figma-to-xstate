@@ -241,12 +241,6 @@ export function generateMachinePath(params: { startingPath?: string; simplifiedF
         path: `${startingPath}.${normalizeString(simplifiedFrame.name)}`,
       }
     }
-
-    if (simplifiedFrame.type === 'FRAME' && simplifiedFrame.framesChildren.length) {
-      const result = generateMachinePath({ startingPath: `${startingPath}.${normalizeString(simplifiedFrame.name)}`, simplifiedFrames: simplifiedFrame.framesChildren, elementId })
-      if (result.found)
-        return result
-    }
   }
 
   return {

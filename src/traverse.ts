@@ -24,7 +24,7 @@ export function traversePage() {
   // Loop optimized to traverse the full document only once
   figma.currentPage.findAll((node) => {
     if (isFrame(node) && isRootFrame(node)) {
-      simplifiedFramesById[node.id] ??= { type: 'FRAME', id: node.id, name: node.name, reactionsData: [], framesChildren: [] }
+      simplifiedFramesById[node.id] ??= { type: 'FRAME', id: node.id, name: node.name, reactionsData: [] }
       const simplifiedFrame = simplifiedFramesById[node.id]
       assertIsDefined(simplifiedFrame, `Unexisting frame (node id ${node.id})`)
 

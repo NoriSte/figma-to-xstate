@@ -56,11 +56,11 @@ export function generateXStateV4StateMachineOptions(params: GeneratorOptions) {
     w.states(() => {
       generateStates({
         writer,
-        tempNameWholesimplifiedFrames: simplifiedFramesTree,
+
         simplifiedFrames: simplifiedFramesTree,
         statesPath: machineId,
         writeUtils: w,
-        tempMachineId: machineId,
+
       })
     })
   })
@@ -70,8 +70,6 @@ export function generateXStateV4StateMachineOptions(params: GeneratorOptions) {
 
 interface StatesGeneratorOptions {
   readonly writer: CodeBlockWriter
-  readonly tempNameWholesimplifiedFrames: SimplifiedFrame[]
-  readonly tempMachineId: string
   readonly simplifiedFrames: SimplifiedFrame[]
   readonly statesPath: string
   readonly writeUtils: ReturnType<typeof createWriterUtils>
@@ -82,8 +80,7 @@ export function generateStates(params: StatesGeneratorOptions) {
     writer,
     statesPath,
     simplifiedFrames,
-    tempMachineId,
-    tempNameWholesimplifiedFrames,
+
     writeUtils: w,
   } = params
 
@@ -143,14 +140,6 @@ export function generateStates(params: StatesGeneratorOptions) {
                 w.eventAfter(destinationPath, delay)
               })
             }
-          }
-
-          // Simple nodes that are reaction targets
-          for (const simplifiedNodeChild of simplifiedFrame.framesChildren) {
-            if (simplifiedNodeChild.type !== 'NODE')
-              continue
-
-            writer.write(normalizeString(simplifiedNodeChild.name)).write(':').write('{}').write(',').newLine()
           }
 
           // Scrollable states

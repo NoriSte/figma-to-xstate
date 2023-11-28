@@ -23,7 +23,6 @@ export type Child = SimplifiedFrame | SimplifiedNode
 
 export type SimplifiedFrame = Pick<FrameNode, 'id' | 'name'> & {
   type: 'FRAME'
-  framesChildren: Child[]
   reactionsData: ReactionData[]
 }
 

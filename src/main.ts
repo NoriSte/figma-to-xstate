@@ -26,7 +26,7 @@ export default function main() {
 
   console.log('generatorOptions', JSON.stringify(figmaAgnosticDescriptor), null, 2)
 
-  return
+  // return
 
   // --------------------------------------------------
   // GENERATE

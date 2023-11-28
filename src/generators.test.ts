@@ -29,10 +29,10 @@ describe('generateXStateV4StateMachineOptions', () => {
       {
         pageName: 'Page 1',
         simplifiedFramesTree: [
-          { type: 'FRAME', id: '1:2', name: 'Frame 1', reactionsData: [], framesChildren: [] },
-          { type: 'FRAME', id: '1:3', name: 'Frame 2', reactionsData: [], framesChildren: [] },
-          { type: 'FRAME', id: '1:4', name: 'Frame 3', reactionsData: [], framesChildren: [] },
-          { type: 'FRAME', id: '1:5', name: 'Frame 4', reactionsData: [], framesChildren: [] },
+          { type: 'FRAME', id: '1:2', name: 'Frame 1', reactionsData: [] },
+          { type: 'FRAME', id: '1:3', name: 'Frame 2', reactionsData: [] },
+          { type: 'FRAME', id: '1:4', name: 'Frame 3', reactionsData: [] },
+          { type: 'FRAME', id: '1:5', name: 'Frame 4', reactionsData: [] },
         ],
       },
     }
@@ -80,13 +80,13 @@ describe('generateXStateV4StateMachineOptions', () => {
             destinationFrameName: 'Frame 2',
             generatedName: 'Navigate to Frame 2',
           }],
-          framesChildren: [],
+
         }, {
           type: 'FRAME',
           id: '1:3',
           name: 'Frame 2',
           reactionsData: [],
-          framesChildren: [],
+
         }],
       },
     }
@@ -132,7 +132,7 @@ describe('generateXStateV4StateMachineOptions', () => {
             destinationFrameName: 'Frame 2',
             generatedName: 'Click to navigate to Frame 2',
           }],
-          framesChildren: [],
+
         }, {
           type: 'FRAME',
           id: '1:3',
@@ -144,7 +144,7 @@ describe('generateXStateV4StateMachineOptions', () => {
             destinationFrameName: 'Frame 1',
             generatedName: 'Drag to navigate to Frame 1',
           }],
-          framesChildren: [],
+
         }],
       },
     }
@@ -201,19 +201,19 @@ describe('generateXStateV4StateMachineOptions', () => {
             destinationFrameName: 'Frame 3',
             generatedName: 'Navigate to Frame 3',
           }],
-          framesChildren: [],
+
         }, {
           type: 'FRAME',
           id: '1:3',
           name: 'Frame 2',
           reactionsData: [],
-          framesChildren: [],
+
         }, {
           type: 'FRAME',
           id: '207:8',
           name: 'Frame 3',
           reactionsData: [],
-          framesChildren: [],
+
         }],
       },
     }
@@ -290,7 +290,7 @@ describe('generateXStateV4StateMachineOptions', () => {
                 generatedName: 'scroll to anchor 3',
               },
             ],
-            framesChildren: [],
+
           },
         ],
       }
