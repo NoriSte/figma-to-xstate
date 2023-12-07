@@ -46,6 +46,9 @@ devDependencies:
   vitest:
     specifier: 0.34.6
     version: 0.34.6
+  xstateV4:
+    specifier: npm:xstate@4
+    version: /xstate@4.38.3
 
 packages:
 
@@ -4419,6 +4422,10 @@ packages:
   /xml-name-validator@4.0.0:
     resolution: {integrity: sha512-ICP2e+jsHvAj2E2lIHxa5tjXRlKDJo4IdvPvCXbXQGdzSfmSpNVyIKMvoZHjDY9DP0zV17iI85o90vRFXNccRw==}
     engines: {node: '>=12'}
+    dev: true
+
+  /xstate@4.38.3:
+    resolution: {integrity: sha512-SH7nAaaPQx57dx6qvfcIgqKRXIh4L0A1iYEqim4s1u7c9VoCgzZc+63FY90AKU4ZzOC2cfJzTnpO4zK7fCUzzw==}
     dev: true
 
   /y18n@5.0.8:

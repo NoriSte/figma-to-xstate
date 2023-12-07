@@ -29,7 +29,8 @@
     "preact": "10.18.1",
     "simple-git-hooks": "^2.9.0",
     "typescript": "5.2.2",
-    "vitest": "0.34.6"
+    "vitest": "0.34.6",
+    "xstateV4": "npm:xstate@4"
   },
   "figma-plugin": {
     "editorType": [

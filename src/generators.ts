@@ -10,7 +10,7 @@ export interface GeneratorOptions {
 
 function createWriterUtils(writer: CodeBlockWriter) {
   return {
-    stateMachineConfig(callback: () => void) { writer.block(callback).write(',') },
+    stateMachineConfig(callback: () => void) { writer.block(callback) },
 
     idleState() { writer.write('idle:').write('{},').newLine() },
     typeFinal() { writer.write('type:').quote().write('final').quote().write(',') },

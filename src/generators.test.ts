@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { createMachine, interpret } from 'xstateV4'
 import { type GeneratorOptions, generateXStateV4StateMachineOptions } from './generators'
 import { generateNewWriter } from './utils'
 
@@ -29,10 +30,10 @@ describe('generateXStateV4StateMachineOptions', () => {
       {
         pageName: 'Page 1',
         simplifiedFrames: [
-          { type: 'FRAME', id: '1:2', name: 'Frame 1', reactionsData: [] },
-          { type: 'FRAME', id: '1:3', name: 'Frame 2', reactionsData: [] },
-          { type: 'FRAME', id: '1:4', name: 'Frame 3', reactionsData: [] },
-          { type: 'FRAME', id: '1:5', name: 'Frame 4', reactionsData: [] },
+          { id: '1:2', name: 'Frame 1', reactionsData: [] },
+          { id: '1:3', name: 'Frame 2', reactionsData: [] },
+          { id: '1:4', name: 'Frame 3', reactionsData: [] },
+          { id: '1:5', name: 'Frame 4', reactionsData: [] },
         ],
       },
     }
@@ -57,9 +58,14 @@ describe('generateXStateV4StateMachineOptions', () => {
             type:'final',
           },
         },
-      }
-      ,"
+      }"
     `)
+
+    // eslint-disable-next-line no-eval
+    const machine = createMachine(eval(`(${writer.toString()})`))
+    const service = interpret(machine).start()
+    expect(service.getSnapshot().value).toEqual('Frame_1')
+    expect(service.getSnapshot().done).toEqual(true)
   })
 
   it('when passed with the options generated from the "Simple frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
@@ -70,7 +76,6 @@ describe('generateXStateV4StateMachineOptions', () => {
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
         simplifiedFrames: [{
-          type: 'FRAME',
           id: '1:2',
           name: 'Frame 1',
           reactionsData: [{
@@ -82,7 +87,6 @@ describe('generateXStateV4StateMachineOptions', () => {
           }],
 
         }, {
-          type: 'FRAME',
           id: '1:3',
           name: 'Frame 2',
           reactionsData: [],
@@ -108,10 +112,17 @@ describe('generateXStateV4StateMachineOptions', () => {
             type:'final',
           },
         },
-      }
-      ,"
+      }"
     `,
     )
+
+    // eslint-disable-next-line no-eval
+    const machine = createMachine(eval(`(${writer.toString()})`))
+    const service = interpret(machine).start()
+    expect(service.getSnapshot().value).toEqual('Frame_1')
+    service.send('ON_CLICK_NAVIGATE_TO_FRAME_2')
+    expect(service.getSnapshot().value).toEqual('Frame_2')
+    expect(service.getSnapshot().done).toEqual(true)
   })
 
   it('when passed with the options generated from the "Click and drag frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
@@ -122,7 +133,6 @@ describe('generateXStateV4StateMachineOptions', () => {
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
         simplifiedFrames: [{
-          type: 'FRAME',
           id: '1:2',
           name: 'Frame 1',
           reactionsData: [{
@@ -134,7 +144,6 @@ describe('generateXStateV4StateMachineOptions', () => {
           }],
 
         }, {
-          type: 'FRAME',
           id: '1:3',
           name: 'Frame 2',
           reactionsData: [{
@@ -168,15 +177,23 @@ describe('generateXStateV4StateMachineOptions', () => {
             },
           },
         },
-      }
-      ,"
+      }"
     `,
     )
+
+    // eslint-disable-next-line no-eval
+    const machine = createMachine(eval(`(${writer.toString()})`))
+    const service = interpret(machine).start()
+    expect(service.getSnapshot().value).toEqual('Frame_1')
+    service.send('ON_CLICK_CLICK_TO_NAVIGATE_TO_FRAME_2')
+    expect(service.getSnapshot().value).toEqual('Frame_2')
+    service.send('ON_DRAG_DRAG_TO_NAVIGATE_TO_FRAME_1')
+    expect(service.getSnapshot().value).toEqual('Frame_1')
   })
 
   it.todo('mouseEvent reactions: these reactions work the same as Drag event, no need to test them')
 
-  it('when passed with the options generated from the "Touch up with delay frame navigation" Figma file, then use the writer to compose a the corresponding state machine', () => {
+  it('when passed with the options generated from the "Touch up with delay frame navigation" Figma file, then use the writer to compose a the corresponding state machine', async () => {
     const writer = generateNewWriter()
 
     const generatorOptions: GeneratorOptions = {
@@ -184,13 +201,12 @@ describe('generateXStateV4StateMachineOptions', () => {
       figmaAgnosticDescriptor: {
         pageName: 'Page 1',
         simplifiedFrames: [{
-          type: 'FRAME',
           id: '1:2',
           name: 'Frame 1',
           reactionsData: [{
             triggerType: 'MOUSE_UP',
             generatedName: 'Navigate to Frame 2 with delay',
-            delay: 2000,
+            delay: 50,
             navigationType: 'NAVIGATE',
             destinationFrameId: '1:3',
             destinationFrameName: 'Frame 2',
@@ -203,13 +219,11 @@ describe('generateXStateV4StateMachineOptions', () => {
           }],
 
         }, {
-          type: 'FRAME',
           id: '1:3',
           name: 'Frame 2',
           reactionsData: [],
 
         }, {
-          type: 'FRAME',
           id: '207:8',
           name: 'Frame 3',
           reactionsData: [],
@@ -231,15 +245,15 @@ describe('generateXStateV4StateMachineOptions', () => {
             initial:'idle',
             states:{
               idle:{},
-              MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY_AFTER_2000:{
+              MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY_AFTER_50:{
                 after:{
-                  2000:'#Page_1.Frame_2',
+                  50:'#Page_1.Frame_2',
                 },
               },
             },
             on:{
               ON_CLICK_NAVIGATE_TO_FRAME_3:'Frame_3',
-              MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY:'#Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY_AFTER_2000',
+              MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY:'#Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY_AFTER_50',
             },
           },
           Frame_2:{
@@ -249,10 +263,40 @@ describe('generateXStateV4StateMachineOptions', () => {
             type:'final',
           },
         },
-      }
-      ,"
+      }"
     `,
     )
+
+    // eslint-disable-next-line no-eval
+    const machine = createMachine(eval(`(${writer.toString()})`))
+
+    // Simple transition
+    let service = interpret(machine).start()
+    expect(service.getSnapshot().value).toEqual({ Frame_1: 'idle' })
+    service.send('ON_CLICK_NAVIGATE_TO_FRAME_3')
+    expect(service.getSnapshot().value).toEqual('Frame_3')
+    expect(service.getSnapshot().done).toEqual(true)
+
+    // Delayed transition
+    service = interpret(machine).start()
+    expect(service.getSnapshot().value).toEqual({ Frame_1: 'idle' })
+    service.send('MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY')
+    expect(service.getSnapshot().value).toEqual({ Frame_1: 'MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY_AFTER_50' })
+
+    await vi.waitFor(
+      () => expect(service.getSnapshot().value).toEqual('Frame_2'),
+      { timeout: 1000, interval: 20 },
+    )
+    expect(service.getSnapshot().done).toEqual(true)
+
+    // Non-delayed transition that stops the delayed one
+    service = interpret(machine).start()
+    expect(service.getSnapshot().value).toEqual({ Frame_1: 'idle' })
+    service.send('MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY')
+    expect(service.getSnapshot().value).toEqual({ Frame_1: 'MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY_AFTER_50' })
+    service.send('ON_CLICK_NAVIGATE_TO_FRAME_3')
+    expect(service.getSnapshot().value).toEqual('Frame_3')
+    expect(service.getSnapshot().done).toEqual(true)
   })
 
   it('when passed with the options generated from the "Simple scroll" Figma file, then use the writer to compose a the corresponding state machine', () => {
@@ -264,7 +308,6 @@ describe('generateXStateV4StateMachineOptions', () => {
         pageName: 'Page 1',
         simplifiedFrames: [
           {
-            type: 'FRAME',
             id: '1:2',
             name: 'Frame 1',
             reactionsData: [
@@ -323,9 +366,15 @@ describe('generateXStateV4StateMachineOptions', () => {
             },
           },
         },
-      }
-      ,"
+      }"
     `)
+
+    // eslint-disable-next-line no-eval
+    const machine = createMachine(eval(`(${writer.toString()})`))
+    const service = interpret(machine).start()
+    expect(service.getSnapshot().value).toEqual({ Frame_1: 'idle' })
+    service.send('ON_CLICK_SCROLL_TO_ANCHOR_1_SCROLL_TO')
+    expect(service.getSnapshot().value).toEqual({ Frame_1: 'Anchor_1' })
   })
   // TODO: test scroll to deeply nested anchors
   // TODO: test click and delay to deeply nested anchors mixed with scroll (ahd with meaningful names in figma)
