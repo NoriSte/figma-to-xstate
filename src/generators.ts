@@ -1,7 +1,7 @@
 import type CodeBlockWriter from 'code-block-writer'
 
 import { normalizeString } from './utils'
-import type { FigmaAgnosticDescriptor, SimplifiedFrame } from './types'
+import type { FigmaAgnosticDescriptor } from './types'
 
 export interface GeneratorOptions {
   readonly writer: CodeBlockWriter
