@@ -33,7 +33,7 @@ conversion process, allowing later engineering rework the state machine with or 
   - [ ] Back
   - [ ] Set variable
   - [ ] Conditional
-  - [ ] Scroll to
+  - [x] Scroll to
   - [ ] Open link
   - [ ] Open overlay
   - [ ] Swap overlay
