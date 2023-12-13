@@ -5,6 +5,7 @@ import { generateNewWriter } from './utils'
 
 describe('generateXStateV4StateMachineOptions', () => {
   it('when passed with an empty list of frames, then throws an error', () => {
+    // Arrange
     const writer = generateNewWriter()
 
     const generatorOptions: GeneratorOptions = {
@@ -16,12 +17,14 @@ describe('generateXStateV4StateMachineOptions', () => {
       },
     }
 
+    // Assert
     expect(() => generateXStateV4StateMachineOptions(generatorOptions)).toThrowError(
       'The document contains no frames.',
     )
   })
 
   it('when passed with the options generated from the "Four empty frames" Figma file, then use the writer to compose a the corresponding state machine', () => {
+    // Arrange
     const writer = generateNewWriter()
 
     const generatorOptions: GeneratorOptions = {
@@ -38,8 +41,10 @@ describe('generateXStateV4StateMachineOptions', () => {
       },
     }
 
+    // Act
     generateXStateV4StateMachineOptions(generatorOptions)
 
+    // Assert
     expect(writer.toString()).toMatchInlineSnapshot(`
       "{
         id:'Page_1',
@@ -61,6 +66,7 @@ describe('generateXStateV4StateMachineOptions', () => {
       }"
     `)
 
+    // Real XState machine conversion
     // eslint-disable-next-line no-eval
     const machine = createMachine(eval(`(${writer.toString()})`))
     const service = interpret(machine).start()
@@ -95,8 +101,10 @@ describe('generateXStateV4StateMachineOptions', () => {
       },
     }
 
+    // Act
     generateXStateV4StateMachineOptions(generatorOptions)
 
+    // Assert
     expect(writer.toString()).toMatchInlineSnapshot(
     `
       "{
@@ -116,6 +124,7 @@ describe('generateXStateV4StateMachineOptions', () => {
     `,
     )
 
+    // Real XState machine conversion
     // eslint-disable-next-line no-eval
     const machine = createMachine(eval(`(${writer.toString()})`))
     const service = interpret(machine).start()
@@ -158,8 +167,10 @@ describe('generateXStateV4StateMachineOptions', () => {
       },
     }
 
+    // Act
     generateXStateV4StateMachineOptions(generatorOptions)
 
+    // Assert
     expect(writer.toString()).toMatchInlineSnapshot(
     `
       "{
@@ -181,6 +192,7 @@ describe('generateXStateV4StateMachineOptions', () => {
     `,
     )
 
+    // Real XState machine conversion
     // eslint-disable-next-line no-eval
     const machine = createMachine(eval(`(${writer.toString()})`))
     const service = interpret(machine).start()
@@ -232,8 +244,10 @@ describe('generateXStateV4StateMachineOptions', () => {
       },
     }
 
+    // Act
     generateXStateV4StateMachineOptions(generatorOptions)
 
+    // Assert
     expect(writer.toString()).toMatchInlineSnapshot(
     `
       "{
@@ -267,6 +281,7 @@ describe('generateXStateV4StateMachineOptions', () => {
     `,
     )
 
+    // Real XState machine conversion
     // eslint-disable-next-line no-eval
     const machine = createMachine(eval(`(${writer.toString()})`))
 
@@ -340,8 +355,10 @@ describe('generateXStateV4StateMachineOptions', () => {
       ,
     }
 
+    // Act
     generateXStateV4StateMachineOptions(generatorOptions)
 
+    // Assert
     expect(writer.toString()).toMatchInlineSnapshot(`
       "{
         id:'Page_1',
@@ -369,6 +386,7 @@ describe('generateXStateV4StateMachineOptions', () => {
       }"
     `)
 
+    // Real XState machine conversion
     // eslint-disable-next-line no-eval
     const machine = createMachine(eval(`(${writer.toString()})`))
     const service = interpret(machine).start()

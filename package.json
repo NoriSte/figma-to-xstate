@@ -25,11 +25,11 @@
     "@create-figma-plugin/tsconfig": "3.0.2",
     "@create-figma-plugin/ui": "3.0.2",
     "@figma/plugin-typings": "1.79.0",
-    "eslint": "^8.53.0",
+    "eslint": "^8.55.0",
     "preact": "10.18.1",
     "simple-git-hooks": "^2.9.0",
     "typescript": "5.2.2",
-    "vitest": "0.34.6",
+    "vitest": "1.0.4",
     "xstateV4": "npm:xstate@4"
   },
   "figma-plugin": {

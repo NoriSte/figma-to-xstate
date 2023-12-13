@@ -196,17 +196,6 @@ export function getOnMouseEventReactionData(params: {
   return result
 }
 
-type ParentNode = BaseNodeMixin['parent']
-export function findParentFrame(node: ParentNode) {
-  if (!node)
-    return
-
-  if (node.type === 'FRAME')
-    return node
-
-  return findParentFrame(node.parent)
-}
-
 export function findParentRootFrame(node: BaseNode) {
   const parent = node.parent
 
@@ -228,8 +217,4 @@ export function isRootFrame(node: FrameNode) {
 export function assertIsDefined<T>(value: T, errorMessage: string): asserts value is NonNullable<T> {
   if (value === undefined || value === null)
     throw new Error(`${value} is not defined (${errorMessage})`)
-}
-export function assertIsString(value: unknown, errorMessage: string): asserts value is string {
-  if (typeof value !== 'string')
-    throw new Error(`${value} is not a string ${errorMessage}`)
 }

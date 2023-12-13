@@ -13,7 +13,7 @@ function createWriterUtils(writer: CodeBlockWriter) {
     stateMachineConfig(callback: () => void) { writer.block(callback) },
 
     idleState() { writer.write('idle:').write('{},').newLine() },
-    typeFinal() { writer.write('type:').quote().write('final').quote().write(',') },
+    finalType() { writer.write('type:').quote().write('final').quote().write(',') },
     stateId(id: string) { writer.write('id:').quote().write(id).quote().write(',').newLine() },
     initialState(name: string) { writer.write('initial:').quote().write(normalizeString(name)).quote().write(',').newLine() },
 
@@ -68,7 +68,7 @@ export function generateXStateV4StateMachineOptions(params: GeneratorOptions) {
           const containStateEvents = simplifiedFrame.reactionsData.length > 0
           if (!containStateEvents) {
             // --> type: 'final'
-            w.typeFinal()
+            w.finalType()
             return
           }
 
@@ -76,11 +76,10 @@ export function generateXStateV4StateMachineOptions(params: GeneratorOptions) {
           const containOnScrollReactions = simplifiedFrame.reactionsData.some(reactionData => reactionData.navigationType === 'SCROLL_TO')
           const requireSubStates = containDelayedReactions || containOnScrollReactions
 
-          if (requireSubStates)
+          if (requireSubStates) {
             // TODO: make sure the id is unique
             w.stateId(frameStateId)
 
-          if (requireSubStates) {
             w.initialState('idle')
             w.statesBlock(() => {
               // Idle state
@@ -89,22 +88,27 @@ export function generateXStateV4StateMachineOptions(params: GeneratorOptions) {
 
               // Delayed navigation states
               for (const reactionData of simplifiedFrame.reactionsData) {
-                if (!('delay' in reactionData) || typeof reactionData.delay === 'undefined' || reactionData.navigationType !== 'NAVIGATE')
+                const isDelayedReaction = ('delay' in reactionData) && reactionData.navigationType === 'NAVIGATE'
+                if (!isDelayedReaction)
                   continue
 
-                // ex. MOUSE_UP_NAVIGATE_TO_FRAME_2_WITH_DELAY
-                const eventName = normalizeString(`${reactionData.triggerType}_${reactionData.generatedName.toUpperCase()}`)
+                // Filter out reactions with delay = 0
+                if (typeof reactionData.delay === 'undefined')
+                  continue
 
-                const delay = reactionData.delay
-                // ex. #Frame_1.MOUSE_UP_NAVIGATE_TO_FRAME_2_AFTER_2000
-                const stateName = `${eventName}_AFTER_${delay}`
+                const {
+                  delay,
+                  triggerType,
+                  generatedName,
+                  destinationFrameName,
+                } = reactionData
 
-                // ex. #Page_1.Frame_2
-                const destinationPath = `#${machineId}.${normalizeString(reactionData.destinationFrameName)}`
+                // ex. MOUSE_UP_<FRAME_NAME>_AFTER_<DELAY>
+                const stateName = `${normalizeString(`${triggerType}_${generatedName.toUpperCase()}`)}_AFTER_${delay}`
+                // ex. #Page_1.<frame_name>
+                const destinationPath = `#${machineId}.${normalizeString(destinationFrameName)}`
 
-                w.stateBlock(stateName, () => {
-                  w.eventAfterDelay(destinationPath, delay)
-                })
+                w.stateBlock(stateName, () => w.eventAfterDelay(destinationPath, delay))
               }
 
               // Scrollable states
@@ -120,9 +124,9 @@ export function generateXStateV4StateMachineOptions(params: GeneratorOptions) {
           w.eventsBlock(() => {
             // State events (without delay)
             for (const reactionData of simplifiedFrame.reactionsData) {
-              if (!('destinationFrameId' in reactionData))
+              if (reactionData.navigationType !== 'NAVIGATE')
                 continue
-              if (('delay' in reactionData))
+              if (('delay' in reactionData && typeof reactionData.delay !== 'undefined'))
                 continue
 
               // ex. ON_CLICK_NAVIGATE_TO_FRAME_3
