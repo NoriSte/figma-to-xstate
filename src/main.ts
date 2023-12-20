@@ -1,20 +1,21 @@
 import { showUI } from '@create-figma-plugin/utilities'
 import type { FigmaAgnosticDescriptor } from './types'
-import { type GeneratorOptions, createXStateV4Machine } from './generators'
+import { type GeneratorOptions, generateXStateV4Machine } from './generators'
 import { traversePage } from './traverse'
 import { generateNewWriter } from './utils'
 
 export default function main() {
-  const figmaAgnosticDescriptor: FigmaAgnosticDescriptor = {
-    pageName: figma.currentPage.name,
-    simplifiedFrames: [],
-    interactiveNodes: [],
-  }
-
   // --------------------------------------------------
   // TRAVERSE
-  traversePage({ figmaAgnosticDescriptor })
+  const { simplifiedFrames } = traversePage()
+
   // --------------------------------------------------
+
+  const figmaAgnosticDescriptor: FigmaAgnosticDescriptor = {
+    pageName: figma.currentPage.name,
+    simplifiedFrames,
+
+  }
 
   const writer = generateNewWriter()
 
@@ -23,11 +24,13 @@ export default function main() {
     figmaAgnosticDescriptor,
   }
 
-  console.log('generatorOptions', JSON.stringify(generatorOptions), null, 2)
+  console.log('generatorOptions', JSON.stringify(figmaAgnosticDescriptor), null, 2)
+
+  // return
 
   // --------------------------------------------------
   // GENERATE
-  createXStateV4Machine(generatorOptions)
+  generateXStateV4Machine(generatorOptions)
   // --------------------------------------------------
 
   const generatedXStateConfig = writer.toString()

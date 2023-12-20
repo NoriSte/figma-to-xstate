@@ -46,6 +46,8 @@ Here is an non-exhausting list of things to do on the project, prioritize by imp
 
 1. Cover more Figma's features (see the main [README](./README.md))
 2. Set up automatic releases
+3. Add documentation for how the supported Figma entities and interactions are then converted to the
+state machine
 
 
 ## Development guide

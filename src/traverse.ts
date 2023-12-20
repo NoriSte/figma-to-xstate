@@ -1,46 +1,63 @@
-import { type FigmaAgnosticDescriptor, isFrame } from './types'
+import { isFrame } from './types'
+import type { SimplifiedFrame, SimplifiedFrames } from './types'
 import {
-  matchElementThatNavigateOnClick,
-  matchElementThatNavigateOnDrag,
-  matchElementThatNavigateOnMouseEvent,
+  assertIsDefined,
+  findParentRootFrame,
+  getOnClickReactionData,
+  getOnDragReactionData,
+  getOnMouseEventReactionData,
+  isRootFrame,
 } from './utils'
 
-export function traversePage(params: { figmaAgnosticDescriptor: FigmaAgnosticDescriptor }) {
-  const {
-    figmaAgnosticDescriptor: {
-      simplifiedFrames: mutableSimplifiedFrames,
-      interactiveNodes: mutableInteractiveNodes,
-    },
-  } = params
+export function traversePage() {
+  const simplifiedFrames: SimplifiedFrames = []
+  const simplifiedFramesById: Record<string, SimplifiedFrame> = {}
 
-  const { skipInvisibleInstanceChildren } = figma
+  const { skipInvisibleInstanceChildren: skipInvisibleInstanceChildrenBackup } = figma
 
   // Skip over invisible nodes and their descendants inside instances for faster performance.
   figma.skipInvisibleInstanceChildren = true
 
-  let parentFrame: FrameNode
+  // Loop optimized to traverse the full document only once
   figma.currentPage.findAll((node) => {
-    // Loop optimized to traverse the full document only once
+    if (isFrame(node) && isRootFrame(node)) {
+      simplifiedFramesById[node.id] ??= { id: node.id, name: node.name, reactionsData: [] }
+      const simplifiedFrame = simplifiedFramesById[node.id]
+      assertIsDefined(simplifiedFrame, `Unexisting frame (node id ${node.id})`)
 
-    if (isFrame(node)) {
-      mutableSimplifiedFrames.push({ id: node.id, name: node.name })
-
-      // The loop traverses all the document, going frame by frame inside all the frame's nodes.
-      // We need to keep track of the last frame we encounter to record the parent frame of the
-      // interactive nodes
-      parentFrame = node
+      simplifiedFrames.push(simplifiedFrame)
     }
 
-    // TODO: optimize the following functions to not loop over reactions independently
-    // TODO: make the following functions pure
-    matchElementThatNavigateOnDrag({ mutableInteractiveNodes, node, parentFrame })
-    matchElementThatNavigateOnClick({ mutableInteractiveNodes, node, parentFrame })
-    matchElementThatNavigateOnMouseEvent({ mutableInteractiveNodes, node, parentFrame })
+    const onDragReactionData = getOnDragReactionData({ node })
+    const onClickReactionData = getOnClickReactionData({ node })
+    const onMouseEventReactionData = getOnMouseEventReactionData({ node })
+
+    if (
+      onDragReactionData.length
+  || onClickReactionData.length
+  || onMouseEventReactionData.length
+
+    ) {
+      const rootFrameId = findParentRootFrame(node).id
+
+      const rootFrame = simplifiedFramesById[rootFrameId]
+      assertIsDefined(rootFrame, `Root Frame not found (node id ${rootFrameId})`)
+
+      const reactionsData = [
+        ...onDragReactionData,
+        ...onClickReactionData,
+        ...onMouseEventReactionData,
+      ]
+
+      rootFrame.reactionsData.push(...reactionsData)
+    }
 
     // Ensure the loop traverses the full document
     return false
   })
 
   // Restore the original value
-  figma.skipInvisibleInstanceChildren = skipInvisibleInstanceChildren
+  figma.skipInvisibleInstanceChildren = skipInvisibleInstanceChildrenBackup
+
+  return { simplifiedFrames }
 }

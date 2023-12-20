@@ -1,5 +1,6 @@
 import CodeBlockWriter from 'code-block-writer'
-import { type InteractiveNode, isGroup } from './types'
+import { isGroup } from './types'
+import type { ReactionData, ReactionDataCommonProperties, ReactionDataTriggerProperties } from './types'
 
 export function generateNewWriter() {
   return new CodeBlockWriter({
@@ -9,7 +10,11 @@ export function generateNewWriter() {
   })
 }
 
-export function generateGroupName(node: GroupNode) {
+export function generateNodeName(node: BaseNode) {
+  return isGroup(node) ? generateGroupName(node) : node.name
+}
+
+function generateGroupName(node: GroupNode) {
   const groupHasGenericName = /^Group\s\d+$/.test(node.name)
   if (!groupHasGenericName)
     return node.name
@@ -32,15 +37,17 @@ export function normalizeString(str: string) {
   return str.trim().replace(/[^a-zA-Z0-9]/g, '_')
 }
 
-export function matchElementThatNavigateOnClick(params: {
-  mutableInteractiveNodes: InteractiveNode[]
+export function getOnClickReactionData(params: {
+
   node: SceneNode
-  parentFrame: FrameNode
-}) {
-  const { mutableInteractiveNodes, node, parentFrame } = params
+
+}): ReactionData[] {
+  const { node } = params
 
   if (!('reactions' in node))
-    return
+    return []
+
+  const result: ReactionData[] = []
 
   for (const reaction of node.reactions) {
     if (!reaction.trigger)
@@ -51,32 +58,41 @@ export function matchElementThatNavigateOnClick(params: {
       continue
     if (reaction.action.type !== 'NODE')
       continue
-    if (reaction.action.navigation !== 'NAVIGATE')
-      continue
     if (!reaction.action.destinationId)
       continue
 
-    mutableInteractiveNodes.push({
-      node,
-      parentFrameId: parentFrame.id,
-      triggerType: reaction.trigger.type,
-      destinationFrameId: reaction.action.destinationId,
-      generatedName: isGroup(node) ? generateGroupName(node) : node.name,
-    })
-
-    break
+    if (reaction.action.navigation === 'NAVIGATE') {
+      result.push({
+        triggerType: reaction.trigger.type,
+        navigationType: reaction.action.navigation,
+        destinationFrameId: reaction.action.destinationId,
+        destinationFrameName: generateNodeName(figma.getNodeById(reaction.action.destinationId)!),
+        generatedName: generateNodeName(node),
+      })
+    }
+    if (reaction.action.navigation === 'SCROLL_TO') {
+      result.push({
+        triggerType: reaction.trigger.type,
+        navigationType: reaction.action.navigation,
+        destinationNodeId: reaction.action.destinationId,
+        destinationNodeName: generateNodeName(figma.getNodeById(reaction.action.destinationId)!),
+        generatedName: generateNodeName(node),
+      })
+    }
   }
+  return result
 }
 
-export function matchElementThatNavigateOnDrag(params: {
-  mutableInteractiveNodes: InteractiveNode[]
+export function getOnDragReactionData(params: {
   node: SceneNode
-  parentFrame: FrameNode
-}) {
-  const { mutableInteractiveNodes, node, parentFrame } = params
+
+}): ReactionData[] {
+  const { node } = params
 
   if (!('reactions' in node))
-    return
+    return []
+
+  const result: ReactionData[] = []
 
   for (const reaction of node.reactions) {
     if (!reaction.trigger)
@@ -87,32 +103,42 @@ export function matchElementThatNavigateOnDrag(params: {
       continue
     if (reaction.action.type !== 'NODE')
       continue
-    if (reaction.action.navigation !== 'NAVIGATE')
-      continue
     if (!reaction.action.destinationId)
       continue
 
-    mutableInteractiveNodes.push({
-      node,
-      parentFrameId: parentFrame.id,
-      triggerType: reaction.trigger.type,
-      destinationFrameId: reaction.action.destinationId,
-      generatedName: isGroup(node) ? generateGroupName(node) : node.name,
-    })
-
-    break
+    if (reaction.action.navigation === 'NAVIGATE') {
+      result.push({
+        triggerType: reaction.trigger.type,
+        navigationType: reaction.action.navigation,
+        destinationFrameId: reaction.action.destinationId,
+        destinationFrameName: generateNodeName(figma.getNodeById(reaction.action.destinationId)!),
+        generatedName: generateNodeName(node),
+      })
+    }
+    if (reaction.action.navigation === 'SCROLL_TO') {
+      result.push({
+        triggerType: reaction.trigger.type,
+        navigationType: reaction.action.navigation,
+        destinationNodeId: reaction.action.destinationId,
+        destinationNodeName: generateNodeName(figma.getNodeById(reaction.action.destinationId)!),
+        generatedName: generateNodeName(node),
+      })
+    }
   }
+
+  return result
 }
 
-export function matchElementThatNavigateOnMouseEvent(params: {
-  mutableInteractiveNodes: InteractiveNode[]
+export function getOnMouseEventReactionData(params: {
   node: SceneNode
-  parentFrame: FrameNode
-}) {
-  const { mutableInteractiveNodes, node, parentFrame } = params
+
+}): ReactionData[] {
+  const { node } = params
 
   if (!('reactions' in node))
-    return
+    return []
+
+  const result: ReactionData[] = []
 
   for (const reaction of node.reactions) {
     if (!reaction.trigger)
@@ -130,29 +156,65 @@ export function matchElementThatNavigateOnMouseEvent(params: {
       continue
     if (reaction.action.type !== 'NODE')
       continue
-    if (reaction.action.navigation !== 'NAVIGATE')
-      continue
     if (!reaction.action.destinationId)
       continue
 
-    const navigationNode: InteractiveNode = {
-      node,
-      parentFrameId: parentFrame.id,
+    const navigationNodeCommonProperties: ReactionDataCommonProperties & ReactionDataTriggerProperties = {
       triggerType: reaction.trigger.type,
-      destinationFrameId: reaction.action.destinationId,
-      generatedName: isGroup(node) ? generateGroupName(node) : node.name,
+      generatedName: generateNodeName(node),
     }
 
+    // TODO: tell the user in case the delay is set to 0
     if (reaction.trigger.delay > 0) {
       // In the Figma UI, the delay can be set only if the device is mobile and the events are
       // MOUSE_LEAVE, MOUSE_ENTER, TOUCH_DOWN, TOUCH_UP even if the TOUCH events are typed as mouse
       // ones. It's better to specify this detail in the docs
-      navigationNode.delay = reaction.trigger.delay * 1000
+      navigationNodeCommonProperties.delay = reaction.trigger.delay * 1000
     }
 
-    mutableInteractiveNodes.push(navigationNode)
+    if (reaction.action.navigation === 'NAVIGATE') {
+      result.push({
+        ...navigationNodeCommonProperties,
+        navigationType: reaction.action.navigation,
+        destinationFrameId: reaction.action.destinationId,
+        destinationFrameName: generateNodeName(figma.getNodeById(reaction.action.destinationId)!),
+      })
+      // Can't break because the same node can have multiple mouse reactions
+    }
+    if (reaction.action.navigation === 'SCROLL_TO') {
+      result.push({
+        ...navigationNodeCommonProperties,
+        navigationType: reaction.action.navigation,
+        destinationNodeId: reaction.action.destinationId,
+        destinationNodeName: generateNodeName(figma.getNodeById(reaction.action.destinationId)!),
 
-    // Can't break because the same node can have multiple mouse reactions
-    // break
+      })
+      // Can't break because the same node can have multiple mouse reactions
+    }
   }
+
+  return result
+}
+
+export function findParentRootFrame(node: BaseNode) {
+  const parent = node.parent
+
+  assertIsDefined(parent, `Parentless nodes are not expected (node id: ${node.id})`)
+
+  if (parent.type === 'FRAME' && isRootFrame(parent))
+    return parent
+
+  return findParentRootFrame(parent)
+}
+
+export function isRootFrame(node: FrameNode) {
+  if (node.parent?.type === 'FRAME')
+    return false
+
+  return true
+}
+
+export function assertIsDefined<T>(value: T, errorMessage: string): asserts value is NonNullable<T> {
+  if (value === undefined || value === null)
+    throw new Error(`${value} is not defined (${errorMessage})`)
 }
