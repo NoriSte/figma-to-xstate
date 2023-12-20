@@ -12,69 +12,81 @@ function createWriterUtils(writer: CodeBlockWriter) {
   return {
     /**
      * Generic wrapper for the top-level object of the state machine.
+     * @example `{
+     *   // code added by `callback` goes here
+     * }`
      */
     stateMachineConfig(callback: () => void) { writer.block(callback) },
 
     /**
      * Add an empty idle state that can ba used as the default state of a state node. The parent state node is responsible to define the events to exit the idle state, if any.
+     * @example `idle: {},`
      */
     idleState() { writer.write('idle:').write('{},').newLine() },
 
     /**
      * Mark a state as final. The state machine will stop when it reaches a final state.
+     * @example `type: 'final',`
      * @see https://xstate.js.org/docs/guides/final.html#final-states
      */
     finalType() { writer.write('type:').quote().write('final').quote().write(',') },
 
     /**
      * Add an id to a state node to be easily referenced across the state machine.
+     * @example `id: '<id>',`
      * @see https://xstate.js.org/docs/guides/ids.html#custom-ids
      */
     stateId(id: string) { writer.write('id:').quote().write(id).quote().write(',').newLine() },
 
     /**
      * Set the initial state of a state node.
+     * @example `initial: '<name>',`
      * @see https://xstate.js.org/docs/guides/hierarchical.html#initial-states
      */
     initialState(name: string) { writer.write('initial:').quote().write(normalizeString(name)).quote().write(',').newLine() },
 
     /**
      * Create a block that contains all the states.
+     * @example `states: {
+     *   // code added by `callback` goes here
+     * },`
      * @see https://xstate.js.org/docs/guides/states.html#states
      */
     statesBlock(callback: () => void) { writer.write('states:').inlineBlock(callback).write(',').newLine() },
 
     /**
      * Create a new state node block.
+     * @example `<state>: {
+     *   // code added by `callback` goes here
+     * },`
      */
     stateBlock(stateName: string, callback: () => void) { writer.write(stateName).write(':').inlineBlock(callback).write(',').newLine() },
 
     /**
      * Create a new events block to list all the events of a state node.
+     * @example `on: {
+     *   // code added by `callback` goes here
+     * },`
      */
     eventsBlock(callback: () => void) { writer.write('on:').inlineBlock(callback).write(',').newLine() },
 
     /**
      * Create a `event: destination` pair.
+     * @example `<eventName>: '<destinationState>',`
      */
     eventGoTo(eventName: string, destinationState: string) { writer.write(eventName).write(':').quote().write(destinationState).quote().write(',').newLine() },
 
     /**
      * Create a `after` block that hosts delayed events.
+     * @example `after: {
+     *   <delay>: '<(destinationState>,
+     * },
      * @see https://xstate.js.org/docs/guides/delays.html#delayed-events
      * @todo Support multiple delayed events
      */
     eventAfterDelay(destinationState: string, delay: number) {
-      /*
-          -->
-          after: {
-            2000: '#Page_1.Frame_2',
-          }
-          */
       writer.write('after:').inlineBlock(() => {
-        // --> 2000
         writer.write(delay.toString()).write(':').quote()
-        // --> '#Page_1.Frame_2',
         writer.write(destinationState).quote().write(',').newLine()
       }).write(',')
     },
