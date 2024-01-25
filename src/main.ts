@@ -1,11 +1,13 @@
-import { showUI } from '@create-figma-plugin/utilities'
+import { on, showUI } from '@create-figma-plugin/utilities'
 import type { FigmaAgnosticDescriptor } from './types'
 import { type GeneratorOptions, generateXStateV4Machine } from './generators'
 import { traversePage } from './traverse'
 import { generateNewWriter } from './utils'
 
-export default function main() {
-  // --------------------------------------------------
+const uiOptions = { width: 480, height: 240 } as const
+
+function run() {
+// --------------------------------------------------
   // TRAVERSE
   const { simplifiedFrames } = traversePage()
 
@@ -33,13 +35,16 @@ export default function main() {
   generateXStateV4Machine(generatorOptions)
   // --------------------------------------------------
 
-  const generatedXStateConfig = writer.toString()
-  const options = { width: 480, height: 240 }
-  showUI(options, { generatedXStateConfig })
+  return writer.toString()
+}
 
-  // Make sure to close the plugin when you're done. Otherwise the plugin will
-  // keep running, which shows the cancel button at the bottom of the screen.
-  // Keeping it running allow later collapsed console.log inspection
-  // figma.closePlugin()
-  // figma.closePlugin('Hello, world!')
+function runAndShowResult() {
+  showUI(uiOptions, { generatedXStateConfig: run() })
+}
+
+export default function main() {
+  runAndShowResult()
+
+  // UI EVENTS
+  on('REGENERATE', runAndShowResult)
 }

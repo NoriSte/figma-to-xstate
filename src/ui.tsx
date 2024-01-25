@@ -3,13 +3,15 @@ import { copyToClipboard } from 'figx'
 
 import {
   Banner,
+  Button,
   Code,
   Container,
   IconWarning32,
+  Stack,
   Text,
-  VerticalSpace,
   render,
 } from '@create-figma-plugin/ui'
+import { emit } from '@create-figma-plugin/utilities'
 
 function SomethingWentWrong({ reason }: { reason: string }) {
   return (
@@ -27,15 +29,23 @@ function PrintXStateV4Config({ generatedXStateConfig }: { generatedXStateConfig:
   }, [generatedXStateConfig])
 
   return (
-    <Container space="medium">
-      <VerticalSpace space="medium" />
+    <Stack space="medium">
       <Text>The XState V4 config has been copied to clipboard.</Text>
-      <VerticalSpace space="medium" />
       <Text>
         <Code>{generatedXStateConfig}</Code>
       </Text>
-      <VerticalSpace space="medium" />
-    </Container>
+
+    </Stack>
+  )
+}
+
+function RegenerateButton({ handleClick }: { handleClick: () => void }) {
+  return (
+
+    <Button onClick={handleClick} secondary>
+      Regenerate
+    </Button>
+
   )
 }
 
@@ -48,7 +58,17 @@ function UI({ generatedXStateConfig }: { generatedXStateConfig: unknown }) {
     return <SomethingWentWrong reason="The received generatedXStateConfig is not a string" />
   }
 
-  return <PrintXStateV4Config generatedXStateConfig={generatedXStateConfig} />
+  return (
+    <Container space="medium">
+      <Stack space="medium">
+        <PrintXStateV4Config generatedXStateConfig={generatedXStateConfig} />
+        <RegenerateButton handleClick={() => {
+          emit('REGENERATE')
+        }}
+        />
+      </Stack>
+    </Container>
+  )
 }
 
 export default render(UI)
