@@ -2,6 +2,8 @@
 
 A Figma plugin to convert a Figma prototype to an XState machine (work in progress).
 
+![Plugin's logo reporting "From Figma prototypes to XState’s machine config"](./assets/hero.jpg "Figma to XState")
+
 ## Why?
 
 I trust XState not only as a powerful development tool, but also for enabling pair programming

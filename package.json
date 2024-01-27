@@ -36,10 +36,11 @@
     "editorType": [
       "figma"
     ],
-    "id": "figma-to-xstate",
+    "id": "1333069526938083033",
     "name": "Figma to XState",
     "ui": "src/ui.tsx",
-    "main": "src/main.ts"
+    "main": "src/main.ts",
+    "networkAccess": { "allowedDomains": ["none"] }
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm typecheck && pnpm lint:fix"
