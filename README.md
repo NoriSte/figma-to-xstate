@@ -1,3 +1,17 @@
+> [!NOTE]
+> I stopped working on this project!
+>
+> - I didn't find complex-enough and valid use cases in my day-to-day working life.
+> - Apart from genuine curiosity, I didn't find much interest from the community.
+> - At the same time, the Figma prototype -> XState conversion is trickier than expected, due to the nested Figma prototype logic. See [discussions/10](https://github.com/NoriSte/figma-to-xstate/discussions/10) as an example.
+> - I achieved the personal goal of learning about [the Figma plu-gin API](https://www.figma.com/plugin-docs/).
+>    - Which resulted in me implementing a Figma plugin, [Select and Inspect](https://www.figma.com/community/plugin/1348339696557868933/select-and-inspect), as a side effect.
+>       - Which allowed me to implement a Figma plugin to check if Preply's Figma files correctly use the tokens or not (it's feasible but quite complex, and it turned out that even more staffed Design System teams avoid doing it due to the maintenance load)
+>          - Which got us (Preply's Design System team) decide to keep the Design System visual coverage on the engineering side. You can read more about it the dedicated article: Visual coverage: [Why and How Preply Measures the Impact of the Design System](https://medium.com/preply-engineering/visual-coverage-why-and-how-preply-measures-the-impact-of-the-design-system-1057115f4aff).
+
+---
+
+
 # 🚧 Figma to XState
 
 A Figma plugin to convert a Figma prototype to an XState machine (work in progress).
